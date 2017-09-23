@@ -113,10 +113,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.isTrue(spy.calledOnce);
       });
 
-      test('Fires list-items-delete custom event from item action button', function() {
+      test('Fires list-item-details custom event from item action button', function() {
         var spy = sinon.spy();
-        element.addEventListener('list-items-delete', spy);
-        var node = Polymer.dom(element.root).querySelector('paper-icon-item .secondary-action');
+        element.addEventListener('list-item-details', spy);
+        var node = Polymer.dom(element.root).querySelector('[data-action="item-detail"]');
         MockInteractions.tap(node);
         assert.isTrue(spy.calledOnce);
       });
