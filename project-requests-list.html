@@ -52,9 +52,20 @@ Custom property | Description | Default
 ----------------|-------------|----------
 `--project-requests-list` | Mixin applied to the element | `{}`
 `--project-requests-list-item` | Mixin applied to each item on the list | `{}`
-`--action-button` | Mixin applied to the main acrion buttons in the table (open, export) | `{}`
+`--project-requests-list-item-selected-background-color` | Background color of selected item | `#E0E0E0`
+`--project-requests-list-item-selected` | Mixin applied to selected item | `{}`
+`--action-button` | Mixin apllied to the primary action buttons | `{}`
+`--secondary-action-button-color` | Color of the secondary action button | `--primary-color`
 `--primary-color` | Color of the secondary action buttons | ``
 `--arc-font-body1` | Mixin applied to the labels in the table header | `{}`
+`--project-requests-list-method-label` | Mixin applied to the `http-method-label` element | `{}`
+`--project-requests-list-method-label-container` Mixin applied to the method label parent container element. | `{}`
+`--project-requests-list-url-label` | Mixin applied to the URL label element | `{}`
+`--project-requests-list-name-label` | Mixin applied to the request name label element | `{}`
+`--project-requests-list-body` | Mixn applied to the URL and name container | `{}`
+`--project-requests-list-header` | Mixin applied to the list header options section. | `{}`
+`--project-requests-list-selection-counter` | Mixin applied to the selection counter | `{}`
+`--project-requests-list-search-input` | Mixin applied to the search input | `{}`
 
 @group UI Elements
 @element project-requests-list
@@ -78,16 +89,35 @@ Custom property | Description | Default
       background-color: #fff;
     }
 
-    .history-item > paper-item {
+    .history-item > paper-icon-item {
       @apply --project-requests-list-item;
     }
 
-    .name {
-      cursor: text;
+    .history-item.selected > paper-icon-item {
+      background-color: var(--project-requests-list-item-selected-background-color, #E0E0E0);
+      @apply --project-requests-list-item-selected;
     }
 
     http-method-label {
       margin-right: 12px;
+      @apply --project-requests-list-method-label;
+    }
+
+    paper-item-body {
+      @apply --project-requests-list-body;
+    }
+
+    .method-label {
+      @apply --project-requests-list-method-label-container;
+    }
+
+    .url-label {
+      @apply --project-requests-list-url-label;
+    }
+
+    .name {
+      cursor: text;
+      @apply --project-requests-list-name-label;
     }
 
     .name-change-popover {
@@ -101,6 +131,7 @@ Custom property | Description | Default
       @apply(--layout-center);
       padding-left: 16px;
       margin: 24px 0;
+      @apply --project-requests-list-header;
     }
 
     .table-options .hiddable {
@@ -120,7 +151,7 @@ Custom property | Description | Default
     }
 
     .secondary-action {
-      color: var(--primary-color);
+      color: var(--secondary-action-button-color, --primary-color);
       height: 36px;
       font-size: 14px;
     }
@@ -130,6 +161,7 @@ Custom property | Description | Default
       display: inline-block;
       margin-left: 8px;
       font-size: 16px;
+      @apply --project-requests-list-selection-counter;
     }
 
     .selected-actions {
@@ -140,6 +172,10 @@ Custom property | Description | Default
     .search {
       margin-right: 12px;
     }
+
+    .search > paper-input {
+      @apply --project-requests-list-search-input;
+    }
     </style>
     <section class$="table-options [[_computeOptionsTableClass(hasSelection)]]">
       <span>
@@ -148,8 +184,8 @@ Custom property | Description | Default
       </span>
       <span class="selected-counter hiddable">[[selectedItems.length]] item(s) selected</span>
       <div class="selected-actions hiddable">
-        <paper-button class="main-action" raised on-tap="_exportSelected">Export</paper-button>
-        <paper-button class="secondary-action" on-tap="_deleteSelected">Delete</paper-button>
+        <paper-button class="main-action" data-action="export-all" raised on-tap="_exportSelected">Export</paper-button>
+        <paper-button class="secondary-action" data-action="delete-all" on-tap="_deleteSelected">Delete</paper-button>
       </div>
       <div class="search">
         <paper-input label="Filter" no-label-float value="{{keyword}}" type="search"></paper-input>
@@ -157,15 +193,17 @@ Custom property | Description | Default
     </section>
     <dom-reorderer>
       <template is="dom-repeat" id="list" items="[[items]]" filter="_filterView" observe="url method name">
-        <div class$="history-item [[_computeRowClass(item._id, selectedItems.*)]]" tabindex$="[[tabIndex]]" aria-label$="Select/Deselect [[item.url]]">
+        <div class$="history-item [[_computeRowClass(item.selected)]]">
           <paper-icon-item>
-            <paper-checkbox on-tap="_toggleCheckbox" checked="[[item.selected]]" item-icon></paper-checkbox>
-            <http-method-label method="[[item.method]]"></http-method-label>
+            <paper-checkbox checked="[[item.selected]]" item-icon  aria-label$="Select/Deselect [[item.url]]"></paper-checkbox>
+            <span class="method-label">
+              <http-method-label method="[[item.method]]"></http-method-label>
+            </span>
             <paper-item-body two-line>
-              <div>[[item.url]]</div>
+              <div class="url-label">[[item.url]]</div>
               <div secondary><span class="name" on-tap="_editName">[[item.name]]</span></div>
             </paper-item-body>
-            <paper-button class="secondary-action" on-tap="_deleteItem">Delete</paper-button>
+            <paper-button class="secondary-action" data-action="item-detail" on-tap="_requestDetails">Details</paper-button>
             <paper-button class="main-action" on-tap="_navigateItem" raised>Open</paper-button>
           </paper-icon-item>
         </div>
@@ -210,6 +248,11 @@ Custom property | Description | Default
      * @event list-items-export
      * @param {Array} items List of request objects requested to be exported.
      */
+    /**
+     * Fired when the "request details" has been requested via this UI.
+     * @event list-item-details
+     * @param {Object} item An object associated with this item.
+     */
     properties: {
       // The list of request objects to render.
       items: Array,
@@ -248,17 +291,16 @@ Custom property | Description | Default
     hostAttributes: {
       'role': 'list'
     },
+
+    listeners: {
+      'tap': '_onSelectItem'
+    },
+
     /**
-     * Computes each list item class name depending on current selection.
-     * @param {String} id Database ID of the item.
-     * @param {Object} record Change record of the selected items array.
+     * Computes if the item has selected class name.
      */
-    _computeRowClass: function(id, record) {
-      if (!id || !record || !record.base || !record.base.length) {
-        return;
-      }
-      var index = record.base.findIndex(item => item._id === id);
-      if (index > -1) {
+    _computeRowClass: function(selected) {
+      if (selected) {
         return 'selected';
       }
     },
@@ -278,10 +320,6 @@ Custom property | Description | Default
     // Computes the `hasSelection` property value
     _computeHasSelection: function(length) {
       return !!length;
-    },
-    // Toogles selection state of an item
-    _toggleCheckbox: function(e) {
-      this.$.selector.select(e.model.get('item'));
     },
     // Called to bring the name change dialog in fron of the table item.
     _editName: function(e) {
@@ -406,6 +444,41 @@ Custom property | Description | Default
     // Re-renders the view when the keyword change to apply filter
     _reRender: function() {
       this.$.list.render();
+    },
+    // Called to request details panel for the list item
+    _requestDetails: function(e) {
+      var item = e.model.get('item');
+      this.fire('list-item-details', {
+        item: item
+      }, {
+        bubbles: false
+      });
+    },
+
+    // Handler for the selection related events.
+    _onSelectItem: function(e) {
+      var model = this.$.list.modelForElement(Polymer.dom(e).path[0]);
+      if (!model) {
+        return;
+      }
+      var target = Polymer.dom(e).path[0];
+      if (target.localName === 'input' ||
+          target.localName === 'button' ||
+          target.localName === 'select' ||
+          target.localName === 'paper-button') {
+        return;
+      }
+
+      var item = model.get('item');
+      var state = !item.selected;
+      var index = model.get('index');
+      if (state) {
+        this.$.selector.select(item);
+        this.set(['items', index, 'selected'], state);
+      } else {
+        this.$.selector.deselect(item);
+        this.set(['items', index, 'selected'], state);
+      }
     }
   });
   </script>

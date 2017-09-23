@@ -22,52 +22,96 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-  <link rel="import" href="../../paper-toast/paper-toast.html">
-
   <link rel="import" href="../project-requests-list.html">
 
   <style is="custom-style" include="demo-pages-shared-styles">
+  html,
+  body {
+    background-color: #EEEEEE;
+  }
 
-    html,
-    body {
-      background-color: #EEEEEE;
+  .vertical-section-container {
+    max-width: 1200px;
+  }
+
+  project-requests-list {
+    background-color: #fff;
+    height: calc(100vh - 360px);
+  }
+
+  :root {
+    --arc-font-headline: {
+      @apply --paper-font-headline;
+    };
+
+    --arc-font-subhead: {
+      @apply --paper-font-subhead;
     }
 
-    .vertical-section-container {
-      max-width: 1200px;
-    }
+    --arc-font-body1: {
+      @apply --paper-font-body1;
+    };
 
-    project-requests-list {
-      background-color: #fff;
-    }
+    --primary-color: #00A2DF;
+    --project-requests-list-item-selected-background-color: #f1f1f1;
+    --project-requests-list-search-input: {
+      min-width: 200px;
+    };
 
-    :root {
-      --action-button: {
-        background-color: var(--primary-color);
-        color: #fff;
-      }
-    }
+    --action-button: {
+      color: #fff;
+      background-color: var(--primary-color);
+    };
+
+    --project-requests-list-body: {
+      margin-left: 12px;
+    };
+
+    --project-requests-list-method-label-container: {
+      display: block;
+      min-width: 90px;
+    };
+
+    --project-requests-list-selection-counter: {
+      margin-left: 30px;
+    };
+  }
+
+  section[card] {
+    @apply(--shadow-elevation-4dp);
+    padding: 20px;
+    background: white;
+    margin-bottom: 40px;
+  }
   </style>
 </head>
 <body unresolved>
   <template is="dom-bind" id="demo">
     <div class="vertical-section-container centered">
-      <h3>The `project-requests-list`</h3>
-      <p>List below is auto-generated random data. Refresh to produce new list.</p>
-      <project-requests-list items="[[items]]" on-list-items-delete="_onDelete" on-list-item-open="_onOpen" on-list-item-name-changed="_onNameChange" on-list-items-export="_onExport" on-dom-order-changed="_onReorder"></project-requests-list>
+      <section card>
+        <p>List below is auto-generated random data. Refresh to produce new list.</p>
+        <project-requests-list
+          items="[[items]]"
+          on-list-items-delete="_onDelete"
+          on-list-item-open="_onOpen"
+          on-list-item-name-changed="_onNameChange"
+          on-list-items-export="_onExport"
+          on-dom-order-changed="_onReorder"
+          on-list-item-details="_onDetails"
+          selected-items="{{selectedItems}}"></project-requests-list>
+      </section>
+      <section card>
+        <h4>Selected items: [[selectedItems.length]]</h4>
+        <h4>Logs:</h4>
+        <output id="output"></output>
+      </section>
     </div>
   </template>
-  <paper-toast id="deleteToast"></paper-toast>
-  <paper-toast id="openToast"></paper-toast>
-  <paper-toast id="nameToast"></paper-toast>
-  <paper-toast id="exportToast"></paper-toast>
-  <paper-toast id="reorderToast"></paper-toast>
   <script>
   /* global DataGenerator */
   (function(scope) {
     scope.items = DataGenerator.generateRequests();
     scope._onDelete = function(e) {
-      var toast = document.getElementById('deleteToast');
       var len = e.detail.items.length;
       var msg;
       if (len === 1) {
@@ -75,34 +119,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       } else {
         msg = len + ' item(s) deleted';
       }
-      toast.text = msg;
-      toast.opened = true;
+      scope.log(msg);
     };
 
     scope._onExport = function(e) {
-      var toast = document.getElementById('exportToast');
-      toast.text = e.detail.items.length + ' item(s) to be exported';
-      toast.opened = true;
+      var msg = e.detail.items.length + ' item(s) to be exported';
+      scope.log(msg);
     };
 
     scope._onOpen = function(e) {
-      var toast = document.getElementById('openToast');
-      toast.text = 'Opens "' + e.detail.item.name + '" request';
-      toast.opened = true;
+      var msg = 'Opens "' + e.detail.item.name + '" request';
+      scope.log(msg);
     };
 
     scope._onNameChange = function(e) {
-      var toast = document.getElementById('nameToast');
-      toast.text = 'Changes name to "' + e.detail.item.name + '"';
-      toast.opened = true;
+      var msg = 'Changes name to "' + e.detail.item.name + '"';
+      scope.log(msg);
+    };
+
+    scope._onDetails = (e) => {
+      var msg = 'Details requested for ' + e.detail.item.url;
+      scope.log(msg);
     };
 
     scope._onReorder = function(e) {
-      var toast = document.getElementById('reorderToast');
       var msg = 'Order changed for item "' + e.detail.item.name + '"';
       msg += ' from position ' + e.detail.from + ' to position ' + e.detail.to;
-      toast.text = msg;
-      toast.opened = true;
+      scope.log(msg);
+    };
+
+    scope.log = function(message) {
+      scope.$.output.innerText += message + '\n';
     };
   })(document.getElementById('demo'));
   </script>
