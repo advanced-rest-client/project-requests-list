@@ -195,7 +195,7 @@ Custom property | Description | Default
       <template is="dom-repeat" id="list" items="[[items]]" filter="_filterView" observe="url method name">
         <div class$="history-item [[_computeRowClass(item.selected)]]">
           <paper-icon-item>
-            <paper-checkbox on-tap="_toggleCheckbox" checked="[[item.selected]]" item-icon  aria-label$="Select/Deselect [[item.url]]"></paper-checkbox>
+            <paper-checkbox checked="[[item.selected]]" item-icon  aria-label$="Select/Deselect [[item.url]]"></paper-checkbox>
             <span class="method-label">
               <http-method-label method="[[item.method]]"></http-method-label>
             </span>
@@ -320,10 +320,6 @@ Custom property | Description | Default
     // Computes the `hasSelection` property value
     _computeHasSelection: function(length) {
       return !!length;
-    },
-    // Toogles selection state of an item
-    _toggleCheckbox: function(e) {
-      this.$.selector.select(e.model.get('item'));
     },
     // Called to bring the name change dialog in fron of the table item.
     _editName: function(e) {
