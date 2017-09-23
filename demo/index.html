@@ -40,12 +40,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   }
 
   :root {
-    --action-button: {
-      background-color: var(--primary-color);
-      color: #fff;
+    --arc-font-headline: {
+      @apply --paper-font-headline;
     };
+
+    --arc-font-subhead: {
+      @apply --paper-font-subhead;
+    }
+
     --arc-font-body1: {
       @apply --paper-font-body1;
+    };
+
+    --primary-color: #00A2DF;
+    --project-requests-list-item-selected-background-color: #f1f1f1;
+    --project-requests-list-search-input: {
+      min-width: 200px;
+    };
+
+    --action-button: {
+      color: #fff;
+      background-color: var(--primary-color);
+    };
+
+    --project-requests-list-body: {
+      margin-left: 12px;
+    };
+
+    --project-requests-list-method-label-container: {
+      display: block;
+      min-width: 90px;
+    };
+
+    --project-requests-list-selection-counter: {
+      margin-left: 30px;
     };
   }
 
