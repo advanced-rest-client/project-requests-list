@@ -457,7 +457,7 @@ Custom property | Description | Default
 
     // Handler for the selection related events.
     _onSelectItem: function(e) {
-      var model = this.$.list.modelForElement(e.target);
+      var model = this.$.list.modelForElement(Polymer.dom(e).path[0]);
       if (!model) {
         return;
       }
