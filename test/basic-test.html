@@ -80,8 +80,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       test('Filters results', function() {
         var keyWord = 'abracadabratest-abc123';
         element.set(['items', 0, 'name'], keyWord);
-        element.keyword = keyWord;
-        var nodes = Polymer.dom(element.root).querySelectorAll('paper-icon-item');
+        element.set('keyword', keyWord);
+        var nodes = Polymer.dom(element.root).querySelectorAll('.history-item paper-icon-item');
         assert.lengthOf(nodes, 1);
       });
     });
