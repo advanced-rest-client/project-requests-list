@@ -123,7 +123,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     };
 
     scope._onExport = function(e) {
-      var msg = e.detail.items.length + ' item(s) to be exported';
+      var msg = e.detail.items.length + ' item(s) to be exported to ';
+      msg += e.detail.destination;
       scope.log(msg);
     };
 
