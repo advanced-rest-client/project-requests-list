@@ -7,6 +7,7 @@
     <script src="../../web-component-tester/browser.js"></script>
     <script src="../../chance/dist/chance.min.js"></script>
     <script src="../demo/test-data-generator.js"></script>
+    <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
     <link rel="import" href="../project-requests-list.html">
   </head>
   <body>
@@ -18,7 +19,7 @@
     </test-fixture>
 
     <script>
-    /* global DataGenerator */
+    /* global DataGenerator, MockInteractions */
     suite('All selected', function() {
       let element;
       setup(function(done) {
@@ -71,8 +72,8 @@
         element.items = DataGenerator.generateRequests();
         flush(() => {
           const boxes = element.shadowRoot.querySelectorAll('paper-icon-item paper-checkbox');
-          boxes[0].click();
-          boxes[5].click();
+          MockInteractions.tap(boxes[0]);
+          MockInteractions.tap(boxes[5]);
           flush(() => done());
         });
       });
