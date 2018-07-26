@@ -156,7 +156,7 @@ the License.
       <template is="dom-repeat" id="list" items="[[items]]" filter="_filterView" observe="url method name">
         <div class$="history-item [[_computeRowClass(item.selected)]]">
           <paper-icon-item>
-            <paper-checkbox checked="[[item.selected]]" slot="item-icon" aria-label$="Select/Deselect [[item.url]]"></paper-checkbox>
+            <paper-checkbox checked="[[item.selected]]" slot="item-icon" aria-label$="Toggle selection"></paper-checkbox>
             <span class="method-label">
               <http-method-label method="[[item.method]]"></http-method-label>
             </span>
@@ -428,14 +428,18 @@ the License.
     }
     // Handler for the selection related events.
     _onSelectItem(e) {
-      const target = e.composedPath()[0];
+      let target;
+      const path = e.composedPath();
+      if (path[0].id === 'checkboxContainer') {
+        target = path[2];
+      } else {
+        target = path[0];
+      }
       const model = this.$.list.modelForElement(target);
       if (!model) {
         return;
       }
-      if (target.localName === 'input' ||
-          target.localName === 'button' ||
-          target.localName === 'select' ||
+      if (target.localName === 'button' ||
           target.localName === 'paper-button') {
         return;
       }
