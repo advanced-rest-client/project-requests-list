@@ -152,14 +152,12 @@ the License.
         <paper-input label="Filter" no-label-float value="{{keyword}}" type="search"></paper-input>
       </div>
     </section>
-    <dom-reorderer>
+    <dom-reorderer disabled$="[[hasSelection]]">
       <template is="dom-repeat" id="list" items="[[items]]" filter="_filterView" observe="url method name">
         <div class$="history-item [[_computeRowClass(item.selected)]]">
           <paper-icon-item>
             <paper-checkbox checked="[[item.selected]]" slot="item-icon" aria-label$="Toggle selection"></paper-checkbox>
-            <span class="method-label">
-              <http-method-label method="[[item.method]]"></http-method-label>
-            </span>
+            <http-method-label method="[[item.method]]"></http-method-label>
             <paper-item-body two-line>
               <div class="url-label">[[item.url]]</div>
               <div secondary><span class="name">[[item.name]]</span></div>
