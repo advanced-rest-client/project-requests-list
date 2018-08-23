@@ -46,6 +46,10 @@ the License.
     }
 
     .history-item > paper-icon-item {
+      @apply --arc-font-menu;
+      font-weight: 400;
+      min-height: 36px;
+      cursor: pointer;
       @apply --project-requests-list-item;
     }
 
@@ -54,17 +58,29 @@ the License.
       @apply --project-requests-list-item-selected;
     }
 
+    paper-icon-item:focus http-method-label[method="post"] {
+      color: var(--saved-menu-selected-post-method-color, #fff);
+    }
+
+    .history-item.selected paper-icon-item:focus http-method-label[method="post"] {
+      color: var(--saved-menu-focused-post-method-color, rgb(33, 150, 243));
+    }
+
     http-method-label {
-      margin-right: 12px;
+      font-size: 14px;
+      height: 52px;
+      width: 52px;
+      text-align: center;
+      padding-top: 14px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      text-overflow: ellipsis;
+      overflow: hidden;
       @apply --project-requests-list-method-label;
     }
 
     paper-item-body {
       @apply --project-requests-list-body;
-    }
-
-    .method-label {
-      @apply --project-requests-list-method-label-container;
     }
 
     .url-label {
@@ -123,6 +139,7 @@ the License.
     }
 
     .search > paper-input {
+      min-width: 220px;
       @apply --project-requests-list-search-input;
     }
     </style>
@@ -145,6 +162,7 @@ the License.
               <iron-icon icon="arc:delete" slot="item-icon"></iron-icon>
               Delete selected
             </paper-icon-item>
+            <slot name="list-context-menu"></slot>
           </paper-listbox>
         </paper-menu-button>
       </div>
@@ -211,7 +229,6 @@ the License.
    * `--primary-color` | Color of the secondary action buttons | ``
    * `--arc-font-body1` | Mixin applied to the labels in the table header | `{}`
    * `--project-requests-list-method-label` | Mixin applied to the `http-method-label` element | `{}`
-   * `--project-requests-list-method-label-container` Mixin applied to the method label parent container element. | `{}`
    * `--project-requests-list-url-label` | Mixin applied to the URL label element | `{}`
    * `--project-requests-list-name-label` | Mixin applied to the request name label element | `{}`
    * `--project-requests-list-body` | Mixn applied to the URL and name container | `{}`
@@ -225,7 +242,7 @@ the License.
    * @demo demo/index.html
    */
   class ProjectRequestsList extends Polymer.Element {
-    static get is() { return 'project-requests-list'; }
+    static get is() {return 'project-requests-list';}
     static get properties() {
       return {
         // The list of request objects to render.
