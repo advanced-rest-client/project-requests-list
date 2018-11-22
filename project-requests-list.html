@@ -32,6 +32,7 @@ the License.
     <style>
     :host {
       display: block;
+      @apply --arc-font-body1;
       @apply --layout-vertical;
       @apply --project-requests-list;
     }
@@ -42,7 +43,7 @@ the License.
 
     .history-item.dragging {
       z-index: 1;
-      background-color: #fff;
+      background-color: var(--project-requests-list-item-dragging-background-color, #fff);
     }
 
     .history-item > paper-icon-item {
@@ -117,13 +118,12 @@ the License.
     }
 
     .secondary-action {
-      color: var(--secondary-action-button-color, var(--primary-color));
+      color: var(--project-requests-list-secondary-action-color, var(--primary-color));
       height: 36px;
       font-size: 14px;
     }
 
     .selected-counter {
-      @apply --arc-font-body1;
       display: inline-block;
       margin-left: 8px;
       font-size: 16px;
@@ -236,6 +236,7 @@ the License.
    * `--project-requests-list-header` | Mixin applied to the list header options section. | `{}`
    * `--project-requests-list-selection-counter` | Mixin applied to the selection counter | `{}`
    * `--project-requests-list-search-input` | Mixin applied to the search input | `{}`
+   * `--project-requests-list-item-dragging-background-color` | Item bg color when dragging | `#fff`
    *
    * @polymer
    * @customElement

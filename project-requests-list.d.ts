@@ -65,13 +65,13 @@ declare namespace UiElements {
    * `--primary-color` | Color of the secondary action buttons | ``
    * `--arc-font-body1` | Mixin applied to the labels in the table header | `{}`
    * `--project-requests-list-method-label` | Mixin applied to the `http-method-label` element | `{}`
-   * `--project-requests-list-method-label-container` Mixin applied to the method label parent container element. | `{}`
    * `--project-requests-list-url-label` | Mixin applied to the URL label element | `{}`
    * `--project-requests-list-name-label` | Mixin applied to the request name label element | `{}`
    * `--project-requests-list-body` | Mixn applied to the URL and name container | `{}`
    * `--project-requests-list-header` | Mixin applied to the list header options section. | `{}`
    * `--project-requests-list-selection-counter` | Mixin applied to the selection counter | `{}`
    * `--project-requests-list-search-input` | Mixin applied to the search input | `{}`
+   * `--project-requests-list-item-dragging-background-color` | Item bg color when dragging | `#fff`
    */
   class ProjectRequestsList extends Polymer.Element {
 
@@ -106,7 +106,7 @@ declare namespace UiElements {
     /**
      * Computes if the item has selected class name.
      */
-    _computeRowClass(selected: any): any;
+    _computeRowClass(selected: Boolean|null): String|null|undefined;
 
     /**
      * Called to delete single item from the list
