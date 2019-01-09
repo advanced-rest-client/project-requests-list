@@ -1,6 +1,6 @@
 {
-  "name": "project-requests-list",
-  "version": "2.0.0-preview",
+  "name": "@advanced-rest-client/project-requests-list",
+  "version": "2.0.0",
   "license": "Apache-2.0",
   "description": "A list of requests in the project details view",
   "devDependencies": {
