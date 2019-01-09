@@ -1,26 +1,14 @@
 <!doctype html>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
     <script src="../../iron-test-helpers/test-helpers.js"></script>
     <script src="../../iron-test-helpers/mock-interactions.js"></script>
     <script src="../../chance/dist/chance.min.js"></script>
-    <script src="test-data-generator.js"></script>
-
-    <!-- Step 1: import the element to test -->
+    <script src="../demo/test-data-generator.js"></script>
     <link rel="import" href="../project-requests-list.html">
   </head>
   <body>
@@ -32,13 +20,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    /* global DataGenerator, TestHelpers, sinon, MockInteractions, fixture, assert */
+    /* global DataGenerator */
     suite('basic', function() {
-      var element;
-      setup(function() {
+      let element;
+      setup(function(done) {
         element = fixture('basic');
         element.items = DataGenerator.generateRequests();
-        TestHelpers.forceXIfStamp(element);
+        flush(() => done());
       });
 
       test('selectedItems is empty', function() {
@@ -58,85 +46,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('Table actions are hidden', function() {
-        var node = element.$$('.selected-actions');
-        var opacity = getComputedStyle(node).opacity;
+        const node = element.shadowRoot.querySelector('.selected-actions');
+        const opacity = getComputedStyle(node).opacity;
         assert.equal(opacity, '0');
       });
 
       test('Do not fires list-items-export without selection', function() {
-        var spy = sinon.spy();
+        const spy = sinon.spy();
         element.addEventListener('list-items-export', spy);
         element._exportSelected();
         assert.isFalse(spy.called);
       });
 
       test('Do not fires list-items-delete without selection', function() {
-        var spy = sinon.spy();
+        const spy = sinon.spy();
         element.addEventListener('list-items-delete', spy);
         element._deleteSelected();
         assert.isFalse(spy.called);
       });
 
       test('Filters results', function() {
-        var keyWord = 'abracadabratest-abc123';
+        const keyWord = 'abracadabratest-abc123';
         element.set(['items', 0, 'name'], keyWord);
         element.set('keyword', keyWord);
-        var nodes = Polymer.dom(element.root).querySelectorAll('.history-item paper-icon-item');
+        const nodes = element.shadowRoot.querySelectorAll('.history-item paper-icon-item');
         assert.lengthOf(nodes, 1);
       });
     });
-
-    suite('Name change', function() {
-      var element;
-      setup(function() {
-        element = fixture('basic');
-        element.items = DataGenerator.generateRequests();
-        TestHelpers.forceXIfStamp(element);
-      });
-
-      test('Opend the popover', function() {
-        var node = Polymer.dom(element.root).querySelector('paper-icon-item .name');
-        var popover = element.$.nameChange;
-        MockInteractions.tap(node);
-        assert.isTrue(popover.opened);
-      });
-
-      function changeName() {
-        var node = Polymer.dom(element.root).querySelector('paper-icon-item .name');
-        MockInteractions.tap(node);
-        element.$.nameChangeInput.value = 'TEST';
-        MockInteractions.pressEnter(element.$.nameChangeInput);
-      }
-
-      test('Changes request name in model', function() {
-        changeName();
-        assert.equal(element.items[0].name, 'TEST');
-      });
-
-      test('Dispatches list-item-name-changed event', function() {
-        var spy = sinon.spy();
-        element.addEventListener('list-item-name-changed', spy);
-        changeName();
-        assert.isTrue(spy.calledOnce);
-      });
-
-      test('The list-item-name-changed event contains model', function() {
-        var eventData;
-        element.addEventListener('list-item-name-changed', function(e) {
-          eventData = e.detail.item;
-        });
-        changeName();
-        assert.deepEqual(element.items[0], eventData);
-      });
-
-      test('Popover is closed on enter', function() {
-        changeName();
-        var popover = element.$.nameChange;
-        assert.isFalse(popover.opened);
-      });
-    });
-
     </script>
-
   </body>
 </html>
