@@ -45,7 +45,7 @@
 
       --primary-color: #00A2DF;
       --project-requests-list-item-selected-background-color: #f1f1f1;
-      
+
       --action-button: {
         color: #fff;
         background-color: var(--primary-color);
@@ -114,8 +114,7 @@
     };
 
     scope._onExport = function(e) {
-      let msg = e.detail.items.length + ' item(s) to be exported to ';
-      msg += e.detail.destination;
+      let msg = e.detail.items.length + ' item(s) to be exported';
       scope.log(msg);
     };
 

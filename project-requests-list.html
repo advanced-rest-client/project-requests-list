@@ -151,13 +151,9 @@ the License.
         <paper-menu-button dynamic-align id="projectListMenu">
           <paper-icon-button icon="arc:more-vert" slot="dropdown-trigger"></paper-icon-button>
           <paper-listbox slot="dropdown-content" id="projectListMenuOptions">
-            <paper-icon-item on-click="_exportSelected" data-action="export-selected-file">
-              <iron-icon icon="arc:archive" slot="item-icon"></iron-icon>
-              Export to file
-            </paper-icon-item>
-            <paper-icon-item on-click="_exportSelectedDrive" data-action="export-selected-drive">
-              <iron-icon icon="arc:drive-color" slot="item-icon"></iron-icon>
-              Export to Google Drive
+            <paper-icon-item on-click="_exportSelected" data-action="export-selected">
+              <iron-icon icon="arc:export-variant" slot="item-icon"></iron-icon>
+              Export selected
             </paper-icon-item>
             <paper-icon-item data-action="delete-all" on-click="_deleteSelected">
               <iron-icon icon="arc:delete" slot="item-icon"></iron-icon>
@@ -375,36 +371,38 @@ the License.
       }));
     }
 
-    // Fires `list-items-export` event to export current selection to a file
+    /**
+     * When selection is set it calls `_dispatchExport()` event with list
+     * of items to export.
+     */
     _exportSelected() {
       this._closeMenu();
-      this._export('file');
-    }
-    // Fires `list-items-export` event to export current selection to Drive
-    _exportSelectedDrive() {
-      this._closeMenu();
-      this._export('drive');
-    }
-    /**
-     * Fires `list-items-export` event
-     *
-     * @param {String} destination Either `file` or `drive`.
-     */
-    _export(destination) {
       const selected = this.selectedItems;
       if (!selected || !selected.length) {
         this.$.noSelectionToast.opened = true;
         return;
       }
-      this.dispatchEvent(new CustomEvent('list-items-export', {
-        composed: true,
-        detail: {
-          items: selected,
-          destination: destination
-        }
-      }));
+      this._dispatchExport(selected);
     }
-    // Closes list menu and resets selection.
+    /**
+     * Dispatches `list-items-export` event.
+     * The event do not bubble.
+     *
+     * @param {Array<Object>} items List of items to export.
+     * @return {CustomEvent} e
+     */
+    _dispatchExport(items) {
+      const e = new CustomEvent('list-items-export', {
+        detail: {
+          items
+        }
+      });
+      this.dispatchEvent(e);
+      return e;
+    }
+    /**
+     * Closes list menu and resets its selection.
+     */
     _closeMenu() {
       this.$.projectListMenu.opened = false;
       Polymer.RenderStatus.afterNextRender(this, () => {
