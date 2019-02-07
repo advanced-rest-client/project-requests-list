@@ -19,6 +19,12 @@
       </template>
     </test-fixture>
 
+    <test-fixture id="Role">
+      <template>
+        <project-requests-list role="option"></project-requests-list>
+      </template>
+    </test-fixture>
+
     <script>
     /* global DataGenerator */
     suite('basic', function() {
@@ -71,6 +77,127 @@
         element.set('keyword', keyWord);
         const nodes = element.shadowRoot.querySelectorAll('.history-item paper-icon-item');
         assert.lengthOf(nodes, 1);
+      });
+    });
+
+    suite('Aria role', () => {
+      test('sets role attribute', function() {
+        const element = fixture('basic');
+        assert.equal(element.getAttribute('role'), 'list');
+      });
+
+      test('Respects existing role', function() {
+        const element = fixture('Role');
+        assert.equal(element.getAttribute('role'), 'option');
+      });
+    });
+
+    suite('_filterView()', () => {
+      let element;
+      setup(function() {
+        element = fixture('basic');
+      });
+
+      test('Returns false when no item', () => {
+        const result = element._filterView();
+        assert.isFalse(result);
+      });
+
+      test('Returns true when no keyword', () => {
+        const result = element._filterView({});
+        assert.isTrue(result);
+      });
+
+      test('Returns true when keyword is not a string', () => {
+        element.keyword = 5;
+        const result = element._filterView({});
+        assert.isTrue(result);
+      });
+
+      test('Returns true when url matches', () => {
+        element.keyword = 'https';
+        const result = element._filterView({
+          url: 'https'
+        });
+        assert.isTrue(result);
+      });
+
+      test('Returns true when url is a subset', () => {
+        element.keyword = 'https';
+        const result = element._filterView({
+          url: 'https://domain.com'
+        });
+        assert.isTrue(result);
+      });
+
+      test('Returns true when method matches', () => {
+        element.keyword = 'post';
+        const result = element._filterView({
+          url: 'https',
+          method: 'post'
+        });
+        assert.isTrue(result);
+      });
+
+      test('Returns true when method is a subset', () => {
+        element.keyword = 'po';
+        const result = element._filterView({
+          url: 'https',
+          method: 'post'
+        });
+        assert.isTrue(result);
+      });
+
+      test('Returns true when name is a subset', () => {
+        element.keyword = 'tes';
+        const result = element._filterView({
+          url: 'https',
+          method: 'post',
+          name: 'test'
+        });
+        assert.isTrue(result);
+      });
+
+      test('Returns false when no match', () => {
+        element.keyword = 'zz';
+        const result = element._filterView({
+          url: 'https',
+          method: 'post',
+          name: 'test'
+        });
+        assert.isFalse(result);
+      });
+    });
+
+    suite('_toggleSelectAll()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('basic');
+        element.items = DataGenerator.generateRequests();
+        flush(() => done());
+      });
+
+      test('Selectes all items', () => {
+        element._toggleSelectAll(true);
+        assert.lengthOf(element.selectedItems, 25);
+      });
+
+      test('Deselects all items', () => {
+        element._toggleSelectAll(true);
+        element._toggleSelectAll(false);
+        assert.lengthOf(element.selectedItems, 0);
+      });
+
+      test('Won\'t change selection when all selected', () => {
+        element._toggleSelectAll(true);
+        assert.lengthOf(element.selectedItems, 25);
+        element._toggleSelectAll(true);
+        assert.lengthOf(element.selectedItems, 25);
+      });
+
+      test('Won\'t change selection when none selected', () => {
+        element._toggleSelectAll(false);
+        assert.lengthOf(element.selectedItems, 0);
       });
     });
     </script>
