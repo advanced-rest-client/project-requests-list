@@ -406,7 +406,7 @@ the License.
     _closeMenu() {
       this.$.projectListMenu.opened = false;
       Polymer.RenderStatus.afterNextRender(this, () => {
-        this.$.projectListMenu.selected = -1;
+        this.$.projectListMenuOptions.selected = -1;
       });
     }
     // Filter function for the table.
