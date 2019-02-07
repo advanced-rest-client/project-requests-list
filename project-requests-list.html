@@ -143,6 +143,25 @@ the License.
       min-width: 220px;
       @apply --project-requests-list-search-input;
     }
+
+    .menu-item iron-icon {
+      color: var(--context-menu-item-color);
+    }
+
+    .menu-item {
+      color: var(--context-menu-item-color);
+      background-color: var(--context-menu-item-background-color);
+      cursor: pointer;
+    }
+
+    .menu-item:hover {
+      color: var(--context-menu-item-color-hover);
+      background-color: var(--context-menu-item-background-color-hover);
+    }
+
+    .menu-item:hover iron-icon {
+      color: var(--context-menu-item-color-hover);
+    }
     </style>
     <section class$="table-options [[_computeOptionsTableClass(hasSelection)]]">
       <paper-checkbox class="select-all" checked="{{allSelected}}" title="Select / deselect all"></paper-checkbox>
@@ -151,11 +170,11 @@ the License.
         <paper-menu-button dynamic-align id="projectListMenu">
           <paper-icon-button icon="arc:more-vert" slot="dropdown-trigger"></paper-icon-button>
           <paper-listbox slot="dropdown-content" id="projectListMenuOptions">
-            <paper-icon-item on-click="_exportSelected" data-action="export-selected">
+            <paper-icon-item class="menu-item" on-click="_exportSelected" data-action="export-selected">
               <iron-icon icon="arc:export-variant" slot="item-icon"></iron-icon>
               Export selected
             </paper-icon-item>
-            <paper-icon-item data-action="delete-all" on-click="_deleteSelected">
+            <paper-icon-item class="menu-item" data-action="delete-all" on-click="_deleteSelected">
               <iron-icon icon="arc:delete" slot="item-icon"></iron-icon>
               Delete selected
             </paper-icon-item>
@@ -233,6 +252,10 @@ the License.
    * `--project-requests-list-selection-counter` | Mixin applied to the selection counter | `{}`
    * `--project-requests-list-search-input` | Mixin applied to the search input | `{}`
    * `--project-requests-list-item-dragging-background-color` | Item bg color when dragging | `#fff`
+   * * `--context-menu-item-color` | Color of the dropdown menu items | ``
+   * `--context-menu-item-background-color` | Background olor of the dropdown menu items | ``
+   * `--context-menu-item-color-hover` | Color of the dropdown menu items when hovering | ``
+   * `--context-menu-item-background-color-hover` | Background olor of the dropdown menu items when hovering | ``
    *
    * @polymer
    * @customElement
