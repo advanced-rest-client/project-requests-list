@@ -76,6 +76,10 @@ declare namespace UiElements {
    * `--project-requests-list-selection-counter` | Mixin applied to the selection counter | `{}`
    * `--project-requests-list-search-input` | Mixin applied to the search input | `{}`
    * `--project-requests-list-item-dragging-background-color` | Item bg color when dragging | `#fff`
+   * * `--context-menu-item-color` | Color of the dropdown menu items | ``
+   * `--context-menu-item-background-color` | Background olor of the dropdown menu items | ``
+   * `--context-menu-item-color-hover` | Color of the dropdown menu items when hovering | ``
+   * `--context-menu-item-background-color-hover` | Background olor of the dropdown menu items when hovering | ``
    */
   class ProjectRequestsList extends Polymer.Element {
 
@@ -141,24 +145,22 @@ declare namespace UiElements {
     _deleteSelected(): void;
 
     /**
-     * Fires `list-items-export` event to export current selection to a file
+     * When selection is set it calls `_dispatchExport()` event with list
+     * of items to export.
      */
     _exportSelected(): void;
 
     /**
-     * Fires `list-items-export` event to export current selection to Drive
-     */
-    _exportSelectedDrive(): void;
-
-    /**
-     * Fires `list-items-export` event
+     * Dispatches `list-items-export` event.
+     * The event do not bubble.
      *
-     * @param destination Either `file` or `drive`.
+     * @param items List of items to export.
+     * @returns e
      */
-    _export(destination: String|null): void;
+    _dispatchExport(items: Array<object|null>|null): CustomEvent|null;
 
     /**
-     * Closes list menu and resets selection.
+     * Closes list menu and resets its selection.
      */
     _closeMenu(): void;
 
