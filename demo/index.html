@@ -11,60 +11,30 @@
   <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
   <link rel="import" href="../../neon-animation/web-animations.html">
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+  <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
+  <link rel="import" href="../../paper-listbox/paper-listbox.html">
+  <link rel="import" href="../../paper-item/paper-item.html">
   <script src="../../chance/dist/chance.min.js"></script>
   <script src="test-data-generator.js"></script>
   <link rel="import" href="../project-requests-list.html">
+  <link rel="import" href="../../arc-electron-default-theme/arc-electron-default-theme.html">
+  <style>
+  html,
+  body {
+    background-color: #EEEEEE;
+  }
+
+  .vertical-section-container {
+    max-width: 1200px;
+  }
+
+  project-requests-list {
+    background-color: #fff;
+    height: calc(100vh - 360px);
+  }
+  </style>
   <custom-style>
     <style include="demo-pages-shared-styles">
-    html,
-    body {
-      background-color: #EEEEEE;
-    }
-
-    .vertical-section-container {
-      max-width: 1200px;
-    }
-
-    project-requests-list {
-      background-color: #fff;
-      height: calc(100vh - 360px);
-    }
-
-    :root {
-      --arc-font-headline: {
-        @apply --paper-font-headline;
-      };
-
-      --arc-font-subhead: {
-        @apply --paper-font-subhead;
-      }
-
-      --arc-font-body1: {
-        @apply --paper-font-body1;
-      };
-
-      --primary-color: #00A2DF;
-      --project-requests-list-item-selected-background-color: #f1f1f1;
-
-      --action-button: {
-        color: #fff;
-        background-color: var(--primary-color);
-      };
-
-      --project-requests-list-body: {
-        margin-left: 12px;
-      };
-
-      --project-requests-list-method-label-container: {
-        display: block;
-        min-width: 90px;
-      };
-
-      --project-requests-list-selection-counter: {
-        margin-left: 30px;
-      };
-    }
-
     section[card] {
       @apply --shadow-elevation-4dp;
       padding: 20px;
@@ -81,7 +51,7 @@
         <section card>
           <p>List below is auto-generated random data. Refresh to produce new list.</p>
           <project-requests-list
-            items="[[items]]"
+            requests="[[items]]"
             on-list-items-delete="_onDelete"
             on-list-item-open="_onOpen"
             on-list-item-name-changed="_onNameChange"
@@ -102,6 +72,7 @@
   /* global DataGenerator */
   (function(scope) {
     scope.items = DataGenerator.generateRequests();
+    scope.listType = 'default';
     scope._onDelete = function(e) {
       const len = e.detail.items.length;
       let msg;

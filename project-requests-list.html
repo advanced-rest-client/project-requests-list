@@ -26,59 +26,26 @@ the License.
 <link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../arc-icons/arc-icons.html">
 <link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../requests-list-mixin/requests-list-styles.html">
 
 <dom-module id="project-requests-list">
   <template strip-whitespace>
-    <style>
+    <style include="requests-list-styles">
     :host {
       display: block;
+      --paper-item-icon-width: 56px;
       @apply --arc-font-body1;
       @apply --layout-vertical;
       @apply --project-requests-list;
     }
 
-    .history-item {
+    .item-wrapper {
       z-index: 0;
     }
 
-    .history-item.dragging {
+    .item-wrapper.dragging {
       z-index: 1;
       background-color: var(--project-requests-list-item-dragging-background-color, #fff);
-    }
-
-    .history-item > paper-icon-item {
-      @apply --arc-font-menu;
-      font-weight: 400;
-      min-height: 36px;
-      cursor: pointer;
-      @apply --project-requests-list-item;
-    }
-
-    .history-item.selected > paper-icon-item {
-      background-color: var(--project-requests-list-item-selected-background-color, #E0E0E0);
-      @apply --project-requests-list-item-selected;
-    }
-
-    paper-icon-item:focus http-method-label[method="post"] {
-      color: var(--saved-menu-selected-post-method-color, #fff);
-    }
-
-    .history-item.selected paper-icon-item:focus http-method-label[method="post"] {
-      color: var(--saved-menu-focused-post-method-color, rgb(33, 150, 243));
-    }
-
-    http-method-label {
-      font-size: 14px;
-      height: 52px;
-      width: 52px;
-      text-align: center;
-      padding-top: 14px;
-      box-sizing: border-box;
-      border-radius: 50%;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      margin-right: 12px;
-      @apply --project-requests-list-method-label;
     }
 
     paper-item-body {
@@ -109,18 +76,6 @@ the License.
     .table-options.inactive .hiddable {
       pointer-events: none;
       opacity: 0;
-    }
-
-    .main-action {
-      @apply --action-button;
-      height: 36px;
-      font-size: 14px;
-    }
-
-    .secondary-action {
-      color: var(--project-requests-list-secondary-action-color, var(--primary-color));
-      height: 36px;
-      font-size: 14px;
     }
 
     .selected-counter {
@@ -187,22 +142,22 @@ the License.
       </div>
     </section>
     <dom-reorderer disabled$="[[hasSelection]]">
-      <template is="dom-repeat" id="list" items="[[items]]" filter="_filterView" observe="url method name">
-        <div class$="history-item [[_computeRowClass(item.selected)]]">
-          <paper-icon-item>
+      <template is="dom-repeat" id="list" items="[[requests]]" filter="_filterView" observe="url method name">
+        <div class$="item-wrapper [[_computeRowClass(item.selected)]]">
+          <paper-icon-item class="request-list-item">
             <paper-checkbox checked="[[item.selected]]" slot="item-icon" aria-label$="Toggle selection"></paper-checkbox>
             <http-method-label method="[[item.method]]"></http-method-label>
-            <paper-item-body two-line>
+            <paper-item-body two-line$="[[twoLines]]">
               <div class="url-label">[[item.url]]</div>
               <div secondary><span class="name">[[item.name]]</span></div>
             </paper-item-body>
-            <paper-button class="secondary-action" data-action="item-detail" on-click="_requestDetails">Details</paper-button>
-            <paper-button class="main-action" on-click="_navigateItem" raised>Open</paper-button>
+            <paper-button class="list-action-button list-secondary-action" data-action="item-detail" on-click="_requestDetails">Details</paper-button>
+            <paper-button class="list-action-button list-main-action" on-click="_navigateItem" raised>Open</paper-button>
           </paper-icon-item>
         </div>
       </template>
     </dom-reorderer>
-    <array-selector id="selector" items="{{items}}" selected="{{selectedItems}}" multi toggle></array-selector>
+    <array-selector id="selector" items="{{requests}}" selected="{{selectedItems}}" multi toggle></array-selector>
     <paper-toast text="Select list item first" id="noSelectionToast"></paper-toast>
   </template>
   <script>
@@ -263,11 +218,16 @@ the License.
    * @demo demo/index.html
    */
   class ProjectRequestsList extends Polymer.Element {
-    static get is() {return 'project-requests-list';}
+    static get is() {
+      return 'project-requests-list';
+    }
     static get properties() {
       return {
-        // The list of request objects to render.
-        items: Array,
+        /**
+         * List of requests to render.
+         * @type {Array<Object>}
+         */
+        requests: Array,
         // List of selected items on the list.
         selectedItems: {
           type: Array,
@@ -282,16 +242,22 @@ the License.
           value: false,
           computed: '_computeHasSelection(selectedItems.length)'
         },
-        // True to select all elements from the list
+        /**
+         * True to select all elements on the list
+         */
         allSelected: {
           type: Boolean,
           observer: '_toggleSelectAll'
         },
-        // Filter keyword. It filters the view matching name, url or method.
-        keyword: {
-          type: String,
-          observer: '_reRender'
-        }
+        /**
+         * Filter keyword. It filters the view matching name, url or method.
+         */
+        keyword: {type: String, observer: '_reRender'},
+        /**
+         * When set it renders the view in 2 lines
+         * @type {[type]}
+         */
+        twoLines: Boolean
       };
     }
 
@@ -320,24 +286,25 @@ the License.
      */
     _computeRowClass(selected) {
       if (selected) {
-        return 'selected';
+        return 'iron-selected';
       }
     }
-    // Called to delete single item from the list
-    _deleteItem(e) {
-      const items = [e.model.get('item')];
-      this.__deleteItems(items);
-    }
-    // Handler for tap action on the "open" button
+    /**
+     * Handler for click action on the "open" button
+     * @param {ClickEvent} e
+     */
     _navigateItem(e) {
       this.dispatchEvent(new CustomEvent('list-item-open', {
-        composed: true,
         detail: {
           item: e.model.get('item')
         }
       }));
     }
-    // Computes the `hasSelection` property value
+    /**
+     * Computes the `hasSelection` property value.
+     * @param {Number} length Curent size of selection
+     * @return {Boolean} True if argument > 0
+     */
     _computeHasSelection(length) {
       return !!length;
     }
@@ -347,7 +314,7 @@ the License.
      */
     _toggleSelectAll(allSelected) {
       const selectedItems = this.selectedItems;
-      const items = this.items;
+      const items = this.requests;
       if (!selectedItems || !items) {
         return;
       }
@@ -384,14 +351,20 @@ the License.
       }
       this.__deleteItems(selected);
     }
-    // Fires `list-items-delete` event to inform hosring application to remove items.
+    /**
+     * Dispatches `list-items-delete` event to inform hosting
+     * application to remove items.
+     * @param {Array<Object>} items List of items to delete
+     * @return {CustomEvent}
+     */
     __deleteItems(items) {
-      this.dispatchEvent(new CustomEvent('list-items-delete', {
-        composed: true,
+      const e = new CustomEvent('list-items-delete', {
         detail: {
-          items: items
+          items
         }
-      }));
+      });
+      this.dispatchEvent(e);
+      return e;
     }
 
     /**
@@ -432,7 +405,11 @@ the License.
         this.$.projectListMenuOptions.selected = -1;
       });
     }
-    // Filter function for the table.
+    /**
+     * Filter function for the table.
+     * @param {Object} item Request item.
+     * @return {Boolean} True when the item should be rendered given current `keyword`.
+     */
     _filterView(item) {
       if (!item) {
         return false;
@@ -490,10 +467,10 @@ the License.
       const index = model.get('index');
       if (state) {
         this.$.selector.select(item);
-        this.set(['items', index, 'selected'], state);
+        this.set(['requests', index, 'selected'], state);
       } else {
         this.$.selector.deselect(item);
-        this.set(['items', index, 'selected'], state);
+        this.set(['requests', index, 'selected'], state);
       }
     }
     /**
