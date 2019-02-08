@@ -31,7 +31,7 @@
       let element;
       setup(function(done) {
         element = fixture('basic');
-        element.items = DataGenerator.generateRequests();
+        element.requests = DataGenerator.generateRequests();
         flush(() => done());
       });
 
@@ -69,14 +69,6 @@
         element.addEventListener('list-items-delete', spy);
         element._deleteSelected();
         assert.isFalse(spy.called);
-      });
-
-      test('Filters results', function() {
-        const keyWord = 'abracadabratest-abc123';
-        element.set(['items', 0, 'name'], keyWord);
-        element.set('keyword', keyWord);
-        const nodes = element.shadowRoot.querySelectorAll('.history-item paper-icon-item');
-        assert.lengthOf(nodes, 1);
       });
     });
 
@@ -173,16 +165,16 @@
       let element;
       setup(function(done) {
         element = fixture('basic');
-        element.items = DataGenerator.generateRequests();
+        element.requests = DataGenerator.generateRequests();
         flush(() => done());
       });
 
-      test('Selectes all items', () => {
+      test('Selectes all requests', () => {
         element._toggleSelectAll(true);
         assert.lengthOf(element.selectedItems, 25);
       });
 
-      test('Deselects all items', () => {
+      test('Deselects all requests', () => {
         element._toggleSelectAll(true);
         element._toggleSelectAll(false);
         assert.lengthOf(element.selectedItems, 0);

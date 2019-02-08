@@ -27,6 +27,7 @@
 /// <reference path="../paper-listbox/paper-listbox.d.ts" />
 /// <reference path="../arc-icons/arc-icons.d.ts" />
 /// <reference path="../paper-menu-button/paper-menu-button.d.ts" />
+/// <reference path="../requests-list-mixin/requests-list-styles.d.ts" />
 
 declare namespace UiElements {
 
@@ -84,9 +85,9 @@ declare namespace UiElements {
   class ProjectRequestsList extends Polymer.Element {
 
     /**
-     * The list of request objects to render.
+     * List of requests to render.
      */
-    items: any[]|null|undefined;
+    requests: Array<object|null>|null;
 
     /**
      * List of selected items on the list.
@@ -100,7 +101,7 @@ declare namespace UiElements {
     readonly hasSelection: boolean|null|undefined;
 
     /**
-     * True to select all elements from the list
+     * True to select all elements on the list
      */
     allSelected: boolean|null|undefined;
 
@@ -108,6 +109,11 @@ declare namespace UiElements {
      * Filter keyword. It filters the view matching name, url or method.
      */
     keyword: string|null|undefined;
+
+    /**
+     * When set it renders the view in 2 lines
+     */
+    twoLines: any;
     connectedCallback(): void;
     disconnectedCallback(): void;
 
@@ -117,19 +123,17 @@ declare namespace UiElements {
     _computeRowClass(selected: Boolean|null): String|null|undefined;
 
     /**
-     * Called to delete single item from the list
+     * Handler for click action on the "open" button
      */
-    _deleteItem(e: any): void;
+    _navigateItem(e: ClickEvent|null): void;
 
     /**
-     * Handler for tap action on the "open" button
+     * Computes the `hasSelection` property value.
+     *
+     * @param length Curent size of selection
+     * @returns True if argument > 0
      */
-    _navigateItem(e: any): void;
-
-    /**
-     * Computes the `hasSelection` property value
-     */
-    _computeHasSelection(length: any): any;
+    _computeHasSelection(length: Number|null): Boolean|null;
 
     /**
      * Toggles selection of of all itmes on the list.
@@ -166,8 +170,11 @@ declare namespace UiElements {
 
     /**
      * Filter function for the table.
+     *
+     * @param item Request item.
+     * @returns True when the item should be rendered given current `keyword`.
      */
-    _filterView(item: any): any;
+    _filterView(item: object|null): Boolean|null;
 
     /**
      * Re-renders the view when the keyword change to apply filter
