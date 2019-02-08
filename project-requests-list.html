@@ -134,7 +134,7 @@ the License.
               Delete selected
             </paper-icon-item>
             <slot name="list-context-menu"></slot>
-          </paper-listbox>
+          </paper-listbox> paper-icon-item
         </paper-menu-button>
       </div>
       <div class="search">
@@ -146,10 +146,10 @@ the License.
         <div class$="item-wrapper [[_computeRowClass(item.selected)]]">
           <paper-icon-item class="request-list-item">
             <paper-checkbox checked="[[item.selected]]" slot="item-icon" aria-label$="Toggle selection"></paper-checkbox>
-            <http-method-label method="[[item.method]]"></http-method-label>
+            <http-method-label class="select-text" method="[[item.method]]"></http-method-label>
             <paper-item-body two-line$="[[twoLines]]">
-              <div class="url-label">[[item.url]]</div>
-              <div secondary><span class="name">[[item.name]]</span></div>
+              <div class="url-label select-text">[[item.url]]</div>
+              <div secondary><span class="name select-text">[[item.name]]</span></div>
             </paper-item-body>
             <paper-button class="list-action-button list-secondary-action" data-action="item-detail" on-click="_requestDetails">Details</paper-button>
             <paper-button class="list-action-button list-main-action" on-click="_navigateItem" raised>Open</paper-button>

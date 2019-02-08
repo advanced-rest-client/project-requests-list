@@ -24,13 +24,13 @@
       let element;
       setup(function(done) {
         element = fixture('basic');
-        element.items = DataGenerator.generateRequests();
+        element.requests = DataGenerator.generateRequests();
         flush(() => done());
       });
 
-      test('selects all items', function() {
+      test('selects all requests', function() {
         element.allSelected = true;
-        assert.lengthOf(element.selectedItems, element.items.length);
+        assert.lengthOf(element.selectedItems, element.requests.length);
       });
 
       test('hasSelection is computed to true', function() {
@@ -70,7 +70,7 @@
       let element;
       setup(function(done) {
         element = fixture('basic');
-        element.items = DataGenerator.generateRequests();
+        element.requests = DataGenerator.generateRequests();
         flush(() => {
           const boxes = element.shadowRoot.querySelectorAll('paper-icon-item paper-checkbox');
           MockInteractions.tap(boxes[0]);
@@ -99,7 +99,7 @@
       test('Fires list-item-open custom event from item action button', function() {
         const spy = sinon.spy();
         element.addEventListener('list-item-open', spy);
-        const node = element.shadowRoot.querySelector('paper-icon-item .main-action');
+        const node = element.shadowRoot.querySelector('paper-icon-item .list-main-action');
         node.click();
         assert.isTrue(spy.calledOnce);
       });
