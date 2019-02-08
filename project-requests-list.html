@@ -324,7 +324,7 @@ the License.
         }
         items.forEach((i, index) => {
           this.$.selector.select(i);
-          this.set(['items', index, 'selected'], true);
+          this.set(['requests', index, 'selected'], true);
         });
       } else {
         if (selectedItems.length === 0) {
@@ -332,7 +332,7 @@ the License.
         }
         items.forEach((i, index) => {
           this.$.selector.deselect(i);
-          this.set(['items', index, 'selected'], false);
+          this.set(['requests', index, 'selected'], false);
         });
       }
     }
