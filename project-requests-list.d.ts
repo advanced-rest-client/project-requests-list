@@ -17,7 +17,6 @@
 /// <reference path="../paper-button/paper-button.d.ts" />
 /// <reference path="../iron-flex-layout/iron-flex-layout.d.ts" />
 /// <reference path="../paper-input/paper-input.d.ts" />
-/// <reference path="../dom-reorderer/dom-reorderer.d.ts" />
 /// <reference path="../paper-styles/shadow.d.ts" />
 /// <reference path="../paper-toast/paper-toast.d.ts" />
 /// <reference path="../paper-item/paper-icon-item.d.ts" />
@@ -28,6 +27,8 @@
 /// <reference path="../arc-icons/arc-icons.d.ts" />
 /// <reference path="../paper-menu-button/paper-menu-button.d.ts" />
 /// <reference path="../requests-list-mixin/requests-list-styles.d.ts" />
+/// <reference path="../requests-list-mixin/requests-list-mixin.d.ts" />
+/// <reference path="../uuid-generator/uuid-generator.d.ts" />
 
 declare namespace UiElements {
 
@@ -82,12 +83,28 @@ declare namespace UiElements {
    * `--context-menu-item-color-hover` | Color of the dropdown menu items when hovering | ``
    * `--context-menu-item-background-color-hover` | Background olor of the dropdown menu items when hovering | ``
    */
-  class ProjectRequestsList extends Polymer.Element {
+  class ProjectRequestsList extends
+    ArcComponents.RequestsListMixin(
+    Object) {
 
     /**
-     * List of requests to render.
+     * Project's datastore ID.
+     * When setting `project` property this ptoperty is updated automatically.
      */
-    requests: Array<object|null>|null;
+    projectId: string|null|undefined;
+
+    /**
+     * A project object related to the list of requests.
+     * It is required property when using drag and drop.
+     * When project object changes related `projectId` property also changes
+     * and this triggest querying for requests list.
+     */
+    project: object|null|undefined;
+
+    /**
+     * True when the request data are being loaded.
+     */
+    readonly loadingRequests: boolean|null|undefined;
 
     /**
      * List of selected items on the list.
@@ -111,11 +128,23 @@ declare namespace UiElements {
     keyword: string|null|undefined;
 
     /**
-     * When set it renders the view in 2 lines
+     * Enables the comonent to accept drop action with a request.
      */
-    twoLines: any;
+    draggableEnabled: boolean|null|undefined;
     connectedCallback(): void;
     disconnectedCallback(): void;
+
+    /**
+     * Updates icon size CSS variable and notifies resize on the list when
+     * list type changes.
+     */
+    _updateListStyles(type: String|null): void;
+    _draggableChanged(value: any): void;
+    _addDndEvents(): void;
+    _removeDndEvents(): void;
+    _projectUpdated(project: any): void;
+    _projectIdChanged(projectId: any): any;
+    _errorToast(message: any): void;
 
     /**
      * Computes if the item has selected class name.
@@ -190,6 +219,81 @@ declare namespace UiElements {
      * Handler for the selection related events.
      */
     _onSelectItem(e: any): void;
+
+    /**
+     * Removes drop pointer from shadow root.
+     */
+    _removeDropPointer(): void;
+
+    /**
+     * Adds drop pointer to shadow root.
+     *
+     * @param ref A list item to be used as a reference point.
+     */
+    _createDropPointer(ref: Element|null): void;
+
+    /**
+     * Handler for `dragover` event on this element. If the dagged item is compatible
+     * it renders drop message.
+     */
+    _dragoverHandler(e: DragEvent|null): void;
+
+    /**
+     * Computes value fro `dropEffect` property of the `DragEvent`.
+     *
+     * @returns Either `copy` or `move`.
+     */
+    _computeDropEffect(e: DragEvent|null): String|null;
+
+    /**
+     * Handler for `dragleave` event on this element.
+     */
+    _dragleaveHandler(e: DragEvent|null): void;
+
+    /**
+     * Handler for `drag` event on this element. If the dagged item is compatible
+     * it adds request to saved requests.
+     */
+    _dropHandler(e: DragEvent|null): void;
+
+    /**
+     * Handles logic when drop event is `move` in effect.
+     * Removes reference to old project (if exists). It uses `arc-source/project-detail`
+     * data from event which should hold project ID.
+     *
+     * @param request Request object
+     * @returns True if the request object changed.
+     */
+    _handleMoveDrop(e: DragEvent|null, request: object|null): Boolean|null;
+
+    /**
+     * Updates project and request objects and inserts the request at a position.
+     *
+     * @param index The position in requests order
+     * @param request Request to update
+     * @param forceRequestUpdate Forces update on request object even
+     * when position hasn't change.
+     */
+    _insertRequestAt(index: Number|null, request: object|null, forceRequestUpdate: Boolean|null): Promise<any>|null;
+    _dispatchProjectChanged(project: any): any;
+
+    /**
+     * Handler for the `dragstart` event added to the list item when `draggableEnabled`
+     * is set to true.
+     * This function sets request data on the `dataTransfer` object with `arc/request-object`
+     * mime type. The request data is a serialized JSON with request model.
+     */
+    _dragStart(e: Event|null): void;
+
+    /**
+     * Computes value for the `draggable` property of the list item.
+     * When `draggableEnabled` is set it returns true which is one of the
+     * conditions to enable drag and drop on an element.
+     *
+     * @param draggableEnabled Current value of `draggableEnabled`
+     * @returns `true` or `false` (as string) depending on the argument.
+     */
+    _computeDraggableValue(draggableEnabled: Boolean|null): String|null;
   }
 }
 

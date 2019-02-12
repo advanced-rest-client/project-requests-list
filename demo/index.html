@@ -14,32 +14,66 @@
   <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
   <link rel="import" href="../../paper-listbox/paper-listbox.html">
   <link rel="import" href="../../paper-item/paper-item.html">
-  <script src="../../chance/dist/chance.min.js"></script>
-  <script src="test-data-generator.js"></script>
+  <link rel="import" href="../../paper-toggle-button/paper-toggle-button.html">
+  <link rel="import" href="../../arc-models/request-model.html">
+  <link rel="import" href="../../arc-models/project-model.html">
+  <link rel="import" href="../../app-pouchdb/pouchdb.html">
+  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+  <link rel="import" href="../../paper-toast/paper-toast.html">
   <link rel="import" href="../project-requests-list.html">
   <link rel="import" href="../../arc-electron-default-theme/arc-electron-default-theme.html">
   <style>
-  html,
-  body {
-    background-color: #EEEEEE;
+  body,
+  html {
+    background-color: #e5e5e5;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
   }
 
   .vertical-section-container {
-    max-width: 1200px;
+    max-width: 1100px;
   }
 
   project-requests-list {
     background-color: #fff;
-    height: calc(100vh - 360px);
+    height: calc(100vh - 560px);
+    overflow: auto;
+  }
+
+  .draggable-toggle {
+    margin: 12px 0;
+  }
+
+  #dragOutput {
+    display: block;
+    padding: 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background-color: #FFF8E1;
+  }
+
+  .drop-target {
+    border: 2px transparent dashed;
+    box-sizing: border-box;
+  }
+
+  .drop-target.drag-over {
+    border-color: #8BC34A;
   }
   </style>
   <custom-style>
     <style include="demo-pages-shared-styles">
-    section[card] {
-      @apply --shadow-elevation-4dp;
-      padding: 20px;
-      background: white;
-      margin-bottom: 40px;
+    h2 {
+      @apply --paper-font-title;
+    }
+
+    .card {
+      @apply --shadow-elevation-3dp;
+      margin-top: 12px;
+      margin-bottom: 12px;
+      background-color: #fff;
+      padding: 12px;
     }
     </style>
   </custom-style>
@@ -47,32 +81,108 @@
 <body unresolved>
   <dom-bind id="demo">
     <template>
-      <div class="vertical-section-container centered">
-        <section card>
-          <p>List below is auto-generated random data. Refresh to produce new list.</p>
-          <project-requests-list
-            requests="[[items]]"
-            on-list-items-delete="_onDelete"
-            on-list-item-open="_onOpen"
-            on-list-item-name-changed="_onNameChange"
-            on-list-items-export="_onExport"
-            on-dom-order-changed="_onReorder"
-            on-list-item-details="_onDetails"
-            selected-items="{{selectedItems}}"></project-requests-list>
-        </section>
-        <section card>
-          <h4>Selected items: [[selectedItems.length]]</h4>
-          <h4>Logs:</h4>
-          <output id="output"></output>
-        </section>
-      </div>
+      <request-model id="rModel"></request-model>
+      <project-model id="pModel"></project-model>
+
+      <section class="card centered options">
+        <h2>Setup options</h2>
+        <paper-button on-click="genData">Generate data</paper-button>
+        <paper-button on-click="deleteData">Destroy data</paper-button>
+        <paper-button on-click="refreshProject">Refresh data</paper-button>
+
+        <div class="draggable-toggle">
+          <paper-toggle-button checked="{{draggableEnabled}}">Enable experimental item draggable (projects only)</paper-toggle-button>
+        </div>
+
+        <paper-dropdown-menu label="Select list type">
+          <paper-listbox slot="dropdown-content" attr-for-selected="data-value" selected="{{listType}}">
+            <paper-item data-value="default">Default</paper-item>
+            <paper-item data-value="comfortable">Comfortable</paper-item>
+            <paper-item data-value="compact">Compact</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </section>
+
+      <section class="centered card">
+        <project-requests-list
+          project="[[project]]"
+          on-list-items-delete="_onDelete"
+          on-list-item-open="_onOpen"
+          on-list-item-name-changed="_onNameChange"
+          on-list-items-export="_onExport"
+          on-list-item-details="_onDetails"
+          selected-items="{{selectedItems}}"
+          draggable-enabled="[[draggableEnabled]]"></project-requests-list>
+      </section>
+
+      <section class="centered card drop-target card" on-dragover="_dragoverHandler" on-dragleave="_dragleaveHandler" on-drop="_dropHandler">
+        Drop object here
+        <output id="dragOutput" hidden></output>
+      </section>
+
+      <section class="card centered">
+        <h4>Selected items: [[selectedItems.length]]</h4>
+        <h4>Logs:</h4>
+        <output id="output"></output>
+      </section>
+
+      <paper-toast text="Data are now ready" id="indexOk"></paper-toast>
+      <paper-toast text="Datastore cleared" id="deleteOk"></paper-toast>
     </template>
   </dom-bind>
   <script>
   /* global DataGenerator */
   (function(scope) {
-    scope.items = DataGenerator.generateRequests();
+    scope.draggableEnabled = true;
+    // scope.items = DataGenerator.generateRequests();
     scope.listType = 'default';
+
+    scope.init = function() {
+      scope.refreshProject();
+    };
+
+    scope.genData = function() {
+      /* global DataGenerator */
+      const project = DataGenerator.generateProjects({
+        projectsSize: 1
+      })[0];
+      project.requests = [];
+      const requests = DataGenerator.generateRequests({
+        requestsSize: 75
+      });
+      requests.forEach((item) => {
+        item.projects = [project._id];
+        project.requests.push(item._id);
+      });
+      const rModel = document.getElementById('rModel');
+      const pModel = document.getElementById('pModel');
+      pModel.updateBulk([project])
+      .then(() => rModel.updateBulk('saved', requests))
+      .then(() => {
+        document.getElementById('indexOk').opened = true;
+        scope.refreshProject();
+      });
+    };
+
+    scope.refreshProject = function() {
+      scope.project = undefined;
+      const pModel = document.getElementById('pModel');
+      pModel.listProjects()
+      .then((projects) => {
+        if (projects) {
+          scope.project = projects[0];
+        }
+      });
+    };
+
+    scope.deleteData = function() {
+      DataGenerator.destroySavedRequestData()
+      .then(() => {
+        document.getElementById('deleteOk').opened = true;
+        scope.refreshProject();
+      });
+    };
+
     scope._onDelete = function(e) {
       const len = e.detail.items.length;
       let msg;
@@ -104,15 +214,42 @@
       scope.log(msg);
     };
 
-    scope._onReorder = function(e) {
-      let msg = 'Order changed for item "' + e.detail.item.name + '"';
-      msg += ' from position ' + e.detail.from + ' to position ' + e.detail.to;
-      scope.log(msg);
-    };
-
     scope.log = function(message) {
       scope.$.output.innerText += message + '\n';
     };
+
+    scope._dragoverHandler = function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      e.currentTarget.classList.add('drag-over');
+    };
+
+    scope._dragleaveHandler = function(e) {
+      e.currentTarget.classList.remove('drag-over');
+    };
+
+    scope._dropHandler = function(e) {
+      e.preventDefault();
+      let data;
+      if (e.dataTransfer.types.indexOf('arc/request-object') !== -1) {
+        data = e.dataTransfer.getData('arc/request-object');
+      } else if (e.dataTransfer.types.indexOf('arc/project-object') !== -1) {
+        data = e.dataTransfer.getData('arc/project-object');
+      }
+      e.currentTarget.classList.remove('drag-over');
+      if (data) {
+        data = JSON.parse(data);
+        console.log(data);
+      } else {
+        data = '';
+      }
+      const out = document.getElementById('dragOutput');
+      out.innerText = JSON.stringify(data, null, 2);
+      if (out.hasAttribute('hidden')) {
+        out.removeAttribute('hidden');
+      }
+    };
+    window.addEventListener('WebComponentsReady', scope.init);
   })(document.getElementById('demo'));
   </script>
 </body>
