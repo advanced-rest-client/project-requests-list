@@ -1,7 +1,8 @@
+import '../../../chance/dist/chance.min.js';
 /* global chance */
 const methods = ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'HEAD'];
 const methodsSize = methods.length - 1;
-const DataGenerator = {};
+export const DataGenerator = {};
 DataGenerator.genRequestObject = function() {
   const methodIndex = chance.integer({min: 0, max: methodsSize});
   const obj = {

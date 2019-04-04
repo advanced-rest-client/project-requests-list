@@ -5,30 +5,12 @@
  *   https://github.com/Polymer/tools/tree/master/packages/gen-typescript-declarations
  *
  * To modify these typings, edit the source file(s):
- *   project-requests-list.html
+ *   project-requests-list.js
  */
 
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
-
-/// <reference path="../polymer/types/polymer-element.d.ts" />
-/// <reference path="../paper-checkbox/paper-checkbox.d.ts" />
-/// <reference path="../paper-button/paper-button.d.ts" />
-/// <reference path="../iron-flex-layout/iron-flex-layout.d.ts" />
-/// <reference path="../paper-input/paper-input.d.ts" />
-/// <reference path="../paper-styles/shadow.d.ts" />
-/// <reference path="../paper-toast/paper-toast.d.ts" />
-/// <reference path="../paper-item/paper-icon-item.d.ts" />
-/// <reference path="../paper-item/paper-item-body.d.ts" />
-/// <reference path="../http-method-label/http-method-label.d.ts" />
-/// <reference path="../paper-icon-button/paper-icon-button.d.ts" />
-/// <reference path="../paper-listbox/paper-listbox.d.ts" />
-/// <reference path="../arc-icons/arc-icons.d.ts" />
-/// <reference path="../paper-menu-button/paper-menu-button.d.ts" />
-/// <reference path="../requests-list-mixin/requests-list-styles.d.ts" />
-/// <reference path="../requests-list-mixin/requests-list-mixin.d.ts" />
-/// <reference path="../uuid-generator/uuid-generator.d.ts" />
 
 declare namespace UiElements {
 
@@ -62,36 +44,18 @@ declare namespace UiElements {
    *
    * Custom property | Description | Default
    * ----------------|-------------|----------
-   * `--project-requests-list` | Mixin applied to the element | `{}`
-   * `--project-requests-list-item` | Mixin applied to each item on the list | `{}`
    * `--project-requests-list-item-selected-background-color` | Background color of selected item | `#E0E0E0`
-   * `--project-requests-list-item-selected` | Mixin applied to selected item | `{}`
-   * `--action-button` | Mixin apllied to the primary action buttons | `{}`
    * `--secondary-action-button-color` | Color of the secondary action button | `--primary-color`
    * `--primary-color` | Color of the secondary action buttons | ``
-   * `--arc-font-body1` | Mixin applied to the labels in the table header | `{}`
-   * `--project-requests-list-method-label` | Mixin applied to the `http-method-label` element | `{}`
-   * `--project-requests-list-url-label` | Mixin applied to the URL label element | `{}`
-   * `--project-requests-list-name-label` | Mixin applied to the request name label element | `{}`
-   * `--project-requests-list-body` | Mixn applied to the URL and name container | `{}`
-   * `--project-requests-list-header` | Mixin applied to the list header options section. | `{}`
-   * `--project-requests-list-selection-counter` | Mixin applied to the selection counter | `{}`
-   * `--project-requests-list-search-input` | Mixin applied to the search input | `{}`
    * `--project-requests-list-item-dragging-background-color` | Item bg color when dragging | `#fff`
    * * `--context-menu-item-color` | Color of the dropdown menu items | ``
    * `--context-menu-item-background-color` | Background olor of the dropdown menu items | ``
    * `--context-menu-item-color-hover` | Color of the dropdown menu items when hovering | ``
    * `--context-menu-item-background-color-hover` | Background olor of the dropdown menu items when hovering | ``
    */
-  class ProjectRequestsList extends
-    ArcComponents.RequestsListMixin(
+  class RequestEditor extends
+    RequestsListMixin(
     Object) {
-
-    /**
-     * Project's datastore ID.
-     * When setting `project` property this ptoperty is updated automatically.
-     */
-    projectId: string|null|undefined;
 
     /**
      * A project object related to the list of requests.
@@ -100,6 +64,12 @@ declare namespace UiElements {
      * and this triggest querying for requests list.
      */
     project: object|null|undefined;
+
+    /**
+     * Project's datastore ID.
+     * When setting `project` property this ptoperty is updated automatically.
+     */
+    projectId: string|null|undefined;
 
     /**
      * True when the request data are being loaded.
@@ -133,12 +103,6 @@ declare namespace UiElements {
     draggableEnabled: boolean|null|undefined;
     connectedCallback(): void;
     disconnectedCallback(): void;
-
-    /**
-     * Updates icon size CSS variable and notifies resize on the list when
-     * list type changes.
-     */
-    _updateListStyles(type: String|null): void;
     _draggableChanged(value: any): void;
     _addDndEvents(): void;
     _removeDndEvents(): void;
@@ -294,9 +258,20 @@ declare namespace UiElements {
      * @returns `true` or `false` (as string) depending on the argument.
      */
     _computeDraggableValue(draggableEnabled: Boolean|null): String|null;
+
+    /**
+     * Updates icon size CSS variable and notifies resize on the list when
+     * list type changes.
+     */
+    _updateListStyles(type: String|null): void;
   }
 }
 
-interface HTMLElementTagNameMap {
-  "project-requests-list": UiElements.ProjectRequestsList;
+declare global {
+
+  interface HTMLElementTagNameMap {
+    "project-requests-list": UiElements.RequestEditor;
+  }
 }
+
+export {};

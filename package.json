@@ -1,15 +1,31 @@
 {
   "name": "@advanced-rest-client/project-requests-list",
-  "version": "2.0.2",
+  "version": "3.0.0-preview.1",
   "license": "Apache-2.0",
   "description": "A list of requests in the project details view",
   "devDependencies": {
-    "@polymer/gen-typescript-declarations": "^1.6.1"
+    "@advanced-rest-client/arc-data-generator": "^3.0.0-preview.1",
+    "@advanced-rest-client/arc-electron-default-theme": "^3.0.0-preview.2",
+    "@advanced-rest-client/arc-models": "^3.0.0-preview.3",
+    "@polymer/gen-typescript-declarations": "^1.6.1",
+    "@polymer/iron-component-page": "^4.0.0",
+    "@polymer/iron-demo-helpers": "^3.0.0",
+    "@polymer/iron-test-helpers": "^3.0.0",
+    "@polymer/paper-dropdown-menu": "^3.0.1",
+    "@polymer/paper-toggle-button": "^3.0.1",
+    "@polymer/test-fixture": "^4.0.2",
+    "@webcomponents/webcomponentsjs": "^2.0.0",
+    "chai": "^4.2.0",
+    "chance": "^1.0.18",
+    "mocha": "^5.2.0",
+    "sinon": "^7.2.3",
+    "wct-mocha": "^1.0.0",
+    "web-animations-js": "^2.3.1"
   },
   "private": false,
-  "main": "project-requests-list.html",
+  "main": "project-requests-list.js",
   "scripts": {
-    "lint": "polymer lint project-requests-list.html",
+    "lint": "polymer lint project-requests-list.js",
     "test-sauce": "polymer test --plugin sauce --job-name \"project-requests-list:local-test\"",
     "test": "polymer test --plugin local",
     "update-types": "gen-typescript-declarations --deleteExisting --outDir ."
@@ -25,5 +41,20 @@
   "authors": [
     "Pawel Psztyc",
     "The Advanced REST client authors <arc@mulesoft.com>"
-  ]
+  ],
+  "dependencies": {
+    "@advanced-rest-client/arc-icons": "^3.0.0-preview.2",
+    "@advanced-rest-client/requests-list-mixin": "^3.0.0-preview.1",
+    "@advanced-rest-client/uuid-generator": "^3.0.0-preview.2",
+    "@api-components/http-method-label": "^3.0.0-preview.2",
+    "@polymer/paper-button": "^3.0.1",
+    "@polymer/paper-checkbox": "^3.1.0",
+    "@polymer/paper-icon-button": "^3.0.2",
+    "@polymer/paper-input": "^3.0.1",
+    "@polymer/paper-item": "^3.0.1",
+    "@polymer/paper-listbox": "^3.0.1",
+    "@polymer/paper-menu-button": "^3.0.1",
+    "@polymer/paper-toast": "^3.0.1",
+    "@polymer/polymer": "^3.2.0"
+  }
 }

@@ -1,0 +1,857 @@
+/**
+@license
+Copyright 2018 The Advanced REST client authors <arc@mulesoft.com>
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
+*/
+import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
+import {afterNextRender} from '../../@polymer/polymer/lib/utils/render-status.js';
+import {html} from '../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../@polymer/paper-checkbox/paper-checkbox.js';
+import '../../@polymer/paper-button/paper-button.js';
+import '../../@polymer/paper-input/paper-input.js';
+import '../../@polymer/paper-toast/paper-toast.js';
+import '../../@polymer/paper-item/paper-icon-item.js';
+import '../../@polymer/paper-item/paper-item-body.js';
+import '../../@polymer/paper-icon-button/paper-icon-button.js';
+import '../../@polymer/paper-listbox/paper-listbox.js';
+import '../../@polymer/paper-menu-button/paper-menu-button.js';
+import '../../@api-components/http-method-label/http-method-label.js';
+import '../../@advanced-rest-client/arc-icons/arc-icons.js';
+import '../../@advanced-rest-client/requests-list-mixin/requests-list-styles.js';
+import {RequestsListMixin} from '../../@advanced-rest-client/requests-list-mixin/requests-list-mixin.js';
+import '../../@advanced-rest-client/uuid-generator/uuid-generator.js';
+/**
+ * A list of requests in the project details view.
+ *
+ * The list doesn't offer any logic related to data models. Actions peformed
+ * by the user have to be handled by event handlers and performed in
+ * hosting application.
+ *
+ * Note: **All events fired by this element do not bubbles**.
+ *
+ * ### Example
+ *
+ * ```html
+ * <project-requests-list items="[...]"></project-requests-list>
+ * ```
+ *
+ * ```javascript
+ * document.querySelector('project-requests-list')
+ * .addEventListener('list-items-delete', function(e) {
+ *  console.log('Items to delete:', e.detail.items);
+ * });
+ * ```
+ *
+ * ### Styling
+ *
+ * `<project-requests-list>` provides the following custom properties and
+ * mixins for styling:
+ *
+ *
+ * Custom property | Description | Default
+ * ----------------|-------------|----------
+ * `--project-requests-list-item-selected-background-color` | Background color of selected item | `#E0E0E0`
+ * `--secondary-action-button-color` | Color of the secondary action button | `--primary-color`
+ * `--primary-color` | Color of the secondary action buttons | ``
+ * `--project-requests-list-item-dragging-background-color` | Item bg color when dragging | `#fff`
+ * * `--context-menu-item-color` | Color of the dropdown menu items | ``
+ * `--context-menu-item-background-color` | Background olor of the dropdown menu items | ``
+ * `--context-menu-item-color-hover` | Color of the dropdown menu items when hovering | ``
+ * `--context-menu-item-background-color-hover` | Background olor of the dropdown menu items when hovering | ``
+ *
+ * @polymer
+ * @customElement
+ * @memberof UiElements
+ * @demo demo/index.html
+ * @demo demo/dnd.html Drag and drop
+ * @appliesMixin RequestsListMixin
+ */
+class RequestEditor extends RequestsListMixin(PolymerElement) {
+  static get template() {
+    return html`<style include="requests-list-styles">
+    :host {
+      display: block;
+      position: relative;
+      --paper-item-icon-width: 56px;
+      font-size: var(--arc-font-body1-font-size);
+      font-weight: var(--arc-font-body1-font-weight);
+      line-height: var(--arc-font-body1-line-height);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item-wrapper {
+      z-index: 0;
+    }
+
+    .item-wrapper.dragging {
+      z-index: 1;
+      background-color: var(--project-requests-list-item-dragging-background-color, #fff);
+    }
+
+    paper-item-body {
+      position: relative;
+    }
+
+    .url-label {
+    }
+
+    .name {
+    }
+
+    .table-options {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 16px;
+      margin: 24px 0;
+    }
+
+    .table-options .hiddable {
+      opacity: 1;
+      transition: opacity 0.2s cubic-bezier(0.47, 0, 0.75, 0.72);
+    }
+
+    .table-options.inactive .hiddable {
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .selected-counter {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 16px;
+    }
+
+    .selected-actions {
+      margin-left: 24px;
+      flex: 1;
+      flex-basis: 0.000000001px;
+    }
+
+    .search {
+      margin-right: 12px;
+    }
+
+    .search > paper-input {
+      min-width: 220px;
+    }
+
+    .menu-item iron-icon {
+      color: var(--context-menu-item-color);
+    }
+
+    .menu-item {
+      color: var(--context-menu-item-color);
+      background-color: var(--context-menu-item-background-color);
+      cursor: pointer;
+    }
+
+    .menu-item:hover {
+      color: var(--context-menu-item-color-hover);
+      background-color: var(--context-menu-item-background-color-hover);
+    }
+
+    .menu-item:hover iron-icon {
+      color: var(--context-menu-item-color-hover);
+    }
+
+    .drop-pointer {
+      position: absolute;
+      left: 4px;
+      color: #757575;
+      width: 20px;
+      height: 24px;
+      font-size: 20px;
+    }
+
+    .drop-pointer::before {
+      content: "⇨";
+    }
+    </style>
+    <section class\$="table-options [[_computeOptionsTableClass(hasSelection)]]">
+      <paper-checkbox class="select-all" checked="{{allSelected}}" title="Select / deselect all"></paper-checkbox>
+      <span class="selected-counter hiddable">[[selectedItems.length]] item(s) selected</span>
+      <div class="selected-actions hiddable">
+        <paper-menu-button dynamic-align id="projectListMenu">
+          <paper-icon-button icon="arc:more-vert" slot="dropdown-trigger"></paper-icon-button>
+          <paper-listbox slot="dropdown-content" id="projectListMenuOptions">
+            <paper-icon-item class="menu-item" on-click="_exportSelected" data-action="export-selected">
+              <iron-icon icon="arc:export-variant" slot="item-icon"></iron-icon>
+              Export selected
+            </paper-icon-item>
+            <paper-icon-item class="menu-item" data-action="delete-all" on-click="_deleteSelected">
+              <iron-icon icon="arc:delete" slot="item-icon"></iron-icon>
+              Delete selected
+            </paper-icon-item>
+            <slot name="list-context-menu"></slot>
+          </paper-listbox> paper-icon-item
+        </paper-menu-button>
+      </div>
+      <div class="search">
+        <paper-input label="Filter" no-label-float value="{{keyword}}" type="search"></paper-input>
+      </div>
+    </section>
+    <template is="dom-repeat" id="list" items="[[requests]]" filter="_filterView" observe="url method name">
+      <div class\$="item-wrapper [[_computeRowClass(item.selected)]]">
+        <paper-icon-item
+          class="request-list-item"
+          draggable\$="[[_computeDraggableValue(draggableEnabled)]]"
+          on-dragstart="_dragStart">
+          <paper-checkbox checked="[[item.selected]]" slot="item-icon" aria-label\$="Toggle selection"></paper-checkbox>
+          <http-method-label class="select-text" method="[[item.method]]"></http-method-label>
+          <paper-item-body two-line\$="[[_hasTwoLines]]">
+            <div class="url-label select-text">[[item.url]]</div>
+            <div secondary><span class="name select-text">[[item.name]]</span></div>
+          </paper-item-body>
+          <paper-button
+            class="list-action-button list-secondary-action"
+            data-action="item-detail"
+            on-click="_requestDetails">Details</paper-button>
+          <paper-button
+            class="list-action-button list-main-action"
+            on-click="_navigateItem"
+            raised>Open</paper-button>
+        </paper-icon-item>
+      </div>
+    </template>
+    <array-selector id="selector" items="{{requests}}" selected="{{selectedItems}}" multi toggle></array-selector>
+    <paper-toast text="Select list item first" id="noSelectionToast"></paper-toast>
+    <paper-toast id="modelError" class="error-toast"></paper-toast>`;
+  }
+
+  static get properties() {
+    return {
+      /**
+       * A project object related to the list of requests.
+       * It is required property when using drag and drop.
+       * When project object changes related `projectId` property also changes
+       * and this triggest querying for requests list.
+       */
+      project: {type: Object, observer: '_projectUpdated'},
+      /**
+       * Project's datastore ID.
+       * When setting `project` property this ptoperty is updated automatically.
+       */
+      projectId: {
+        type: String,
+        observer: '_projectIdChanged'
+      },
+      /**
+       * True when the request data are being loaded.
+       */
+      loadingRequests: {
+        type: Boolean,
+        notify: true,
+        readOnly: true
+      },
+      /**
+       * List of selected items on the list.
+       */
+      selectedItems: {
+        type: Array,
+        notify: true
+      },
+      /**
+       * If true, the user selected some elements on list. Check the
+       * `this.selectedItems` property to check for the selected elements.
+       */
+      hasSelection: {
+        type: Boolean,
+        value: false,
+        computed: '_computeHasSelection(selectedItems.length)'
+      },
+      /**
+       * True to select all elements on the list
+       */
+      allSelected: {
+        type: Boolean,
+        observer: '_toggleSelectAll'
+      },
+      /**
+       * Filter keyword. It filters the view matching name, url or method.
+       */
+      keyword: {type: String, observer: '_reRender'},
+      /**
+       * Enables the comonent to accept drop action with a request.
+       */
+      draggableEnabled: {type: Boolean, value: false, observer: '_draggableChanged'}
+    };
+  }
+
+  constructor() {
+    super();
+    this._onSelectItem = this._onSelectItem.bind(this);
+    this._dragoverHandler = this._dragoverHandler.bind(this);
+    this._dragleaveHandler = this._dragleaveHandler.bind(this);
+    this._dropHandler = this._dropHandler.bind(this);
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.type = 'project';
+    this.addEventListener('click', this._onSelectItem);
+    if (!this.hasAttribute('role')) {
+      this.setAttribute('role', 'list');
+    }
+    if (this.draggableEnabled) {
+      this._addDndEvents();
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('click', this._onSelectItem);
+    this._removeDndEvents();
+  }
+
+  _draggableChanged(value) {
+    if (value) {
+      this._addDndEvents();
+    } else {
+      this._removeDndEvents();
+    }
+  }
+
+  _addDndEvents() {
+    if (this.__dndAdded) {
+      return;
+    }
+    this.__dndAdded = true;
+    this.addEventListener('dragover', this._dragoverHandler);
+    this.addEventListener('dragleave', this._dragleaveHandler);
+    this.addEventListener('drop', this._dropHandler);
+  }
+
+  _removeDndEvents() {
+    if (!this.__dndAdded) {
+      return;
+    }
+    this.__dndAdded = false;
+    this.removeEventListener('dragover', this._dragoverHandler);
+    this.removeEventListener('dragleave', this._dragleaveHandler);
+    this.removeEventListener('drop', this._dropHandler);
+  }
+
+  _projectUpdated(project) {
+    const id = project && project._id;
+    if (this.projectId !== id) {
+      this.projectId = id;
+    }
+  }
+
+  _projectIdChanged(projectId) {
+    this.requests = undefined;
+    if (!projectId) {
+      return;
+    }
+    this._setLoadingRequests(true);
+    return this.readProjectRequests(projectId)
+    .then((requests) => {
+      this.requests = requests;
+      this._setLoadingRequests(false);
+    })
+    .catch((cause) => {
+      this._setLoadingRequests(false);
+      this._errorToast(cause.message);
+      console.warn(cause);
+    });
+  }
+
+  _errorToast(message) {
+    this.$.modelError.text = message;
+    this.$.modelError.opened = true;
+  }
+  /**
+   * Computes if the item has selected class name.
+   *
+   * @param {Boolean} selected
+   * @return {String|undefined}
+   */
+  _computeRowClass(selected) {
+    if (selected) {
+      return 'iron-selected';
+    }
+  }
+  /**
+   * Handler for click action on the "open" button
+   * @param {ClickEvent} e
+   */
+  _navigateItem(e) {
+    this.dispatchEvent(new CustomEvent('list-item-open', {
+      detail: {
+        item: e.model.get('item')
+      }
+    }));
+  }
+  /**
+   * Computes the `hasSelection` property value.
+   * @param {Number} length Curent size of selection
+   * @return {Boolean} True if argument > 0
+   */
+  _computeHasSelection(length) {
+    return !!length;
+  }
+  /**
+   * Toggles selection of of all itmes on the list.
+   * @param {Boolean} allSelected Current state of the `allSelected` property.
+   */
+  _toggleSelectAll(allSelected) {
+    const selectedItems = this.selectedItems;
+    const items = this.requests;
+    if (!selectedItems || !items) {
+      return;
+    }
+    if (allSelected) {
+      if (selectedItems.length === items.length) {
+        return;
+      }
+      items.forEach((i, index) => {
+        this.$.selector.select(i);
+        this.set(['requests', index, 'selected'], true);
+      });
+    } else {
+      if (selectedItems.length === 0) {
+        return;
+      }
+      items.forEach((i, index) => {
+        this.$.selector.deselect(i);
+        this.set(['requests', index, 'selected'], false);
+      });
+    }
+  }
+  _computeOptionsTableClass(hasSelection) {
+    return hasSelection ? '' : ' inactive';
+  }
+  /**
+   * Informs hosting application to delete currently selected items.
+   */
+  _deleteSelected() {
+    this._closeMenu();
+    const selected = this.selectedItems;
+    if (!selected || !selected.length) {
+      this.$.noSelectionToast.opened = true;
+      return;
+    }
+    this.__deleteItems(selected);
+  }
+  /**
+   * Dispatches `list-items-delete` event to inform hosting
+   * application to remove items.
+   * @param {Array<Object>} items List of items to delete
+   * @return {CustomEvent}
+   */
+  __deleteItems(items) {
+    const e = new CustomEvent('list-items-delete', {
+      detail: {
+        items
+      }
+    });
+    this.dispatchEvent(e);
+    return e;
+  }
+
+  /**
+   * When selection is set it calls `_dispatchExport()` event with list
+   * of items to export.
+   */
+  _exportSelected() {
+    this._closeMenu();
+    const selected = this.selectedItems;
+    if (!selected || !selected.length) {
+      this.$.noSelectionToast.opened = true;
+      return;
+    }
+    this._dispatchExport(selected);
+  }
+  /**
+   * Dispatches `list-items-export` event.
+   * The event do not bubble.
+   *
+   * @param {Array<Object>} items List of items to export.
+   * @return {CustomEvent} e
+   */
+  _dispatchExport(items) {
+    const e = new CustomEvent('list-items-export', {
+      detail: {
+        items
+      }
+    });
+    this.dispatchEvent(e);
+    return e;
+  }
+  /**
+   * Closes list menu and resets its selection.
+   */
+  _closeMenu() {
+    this.$.projectListMenu.opened = false;
+    afterNextRender(this, () => {
+      this.$.projectListMenuOptions.selected = -1;
+    });
+  }
+  /**
+   * Filter function for the table.
+   * @param {Object} item Request item.
+   * @return {Boolean} True when the item should be rendered given current `keyword`.
+   */
+  _filterView(item) {
+    if (!item) {
+      return false;
+    }
+    let keyword = this.keyword;
+    if (!keyword || typeof keyword !== 'string') {
+      return true;
+    }
+    keyword = keyword.toLowerCase();
+    if (item.url && item.url.toLowerCase().indexOf(keyword) !== -1) {
+      return true;
+    }
+    if (item.method && item.method.toLowerCase().indexOf(keyword) !== -1) {
+      return true;
+    }
+    if (item.name && item.name.toLowerCase().indexOf(keyword) !== -1) {
+      return true;
+    }
+    return false;
+  }
+  // Re-renders the view when the keyword change to apply filter
+  _reRender() {
+    this.$.list.render();
+  }
+  // Called to request details panel for the list item
+  _requestDetails(e) {
+    const item = e.model.get('item');
+    this.dispatchEvent(new CustomEvent('list-item-details', {
+      detail: {
+        item: item
+      }
+    }));
+  }
+  // Handler for the selection related events.
+  _onSelectItem(e) {
+    let target;
+    const path = e.composedPath();
+    if (path[0].id === 'checkboxContainer') {
+      target = path[2];
+    } else {
+      target = path[0];
+    }
+    const model = this.$.list.modelForElement(target);
+    if (!model) {
+      return;
+    }
+    if (target.localName === 'button' ||
+        target.localName === 'paper-button') {
+      return;
+    }
+
+    const item = model.get('item');
+    const state = !item.selected;
+    const index = model.get('index');
+    if (state) {
+      this.$.selector.select(item);
+      this.set(['requests', index, 'selected'], state);
+    } else {
+      this.$.selector.deselect(item);
+      this.set(['requests', index, 'selected'], state);
+    }
+  }
+  /**
+   * Removes drop pointer from shadow root.
+   */
+  _removeDropPointer() {
+    if (!this.__dropPointer) {
+      return;
+    }
+    this.shadowRoot.removeChild(this.__dropPointer);
+    this.__dropPointer = undefined;
+  }
+  /**
+   * Adds drop pointer to shadow root.
+   * @param {Element} ref A list item to be used as a reference point.
+   */
+  _createDropPointer(ref) {
+    let below = false;
+    if (ref.nodeName === 'DOM-REPEAT') {
+      // was last element
+      below = true;
+      ref = ref.previousElementSibling;
+    }
+    const rect = ref.getClientRects()[0];
+    const div = document.createElement('div');
+    div.className = 'drop-pointer';
+    const ownRect = this.getClientRects()[0];
+    let topPosition = rect.y - ownRect.y + this.scrollTop;
+    if (below) {
+      topPosition += rect.height;
+    }
+    topPosition -= 10; // padding
+    div.style.top = topPosition + 'px';
+    this.__dropPointer = div;
+    this.shadowRoot.appendChild(div);
+  }
+  /**
+   * Handler for `dragover` event on this element. If the dagged item is compatible
+   * it renders drop message.
+   * @param {DragEvent} e
+   */
+  _dragoverHandler(e) {
+    if (!this.draggableEnabled) {
+      return;
+    }
+    if (e.dataTransfer.types.indexOf('arc/request-object') === -1) {
+      return;
+    }
+    e.dataTransfer.dropEffect = this._computeDropEffect(e);
+    e.preventDefault();
+    const path = e.path || e.composedPath();
+    const item = path.find((node) => node.classList && node.classList.contains('item-wrapper'));
+    if (!item) {
+      return;
+    }
+    const rect = item.getClientRects()[0];
+    const aboveHalf = (rect.y + rect.height/2) > e.y;
+    const ref = aboveHalf ? item : item.nextElementSibling;
+    if (!ref || this.__dropPointerReference === ref) {
+      return;
+    }
+    this._removeDropPointer();
+    this.__dropPointerReference = ref;
+    this._createDropPointer(ref);
+  }
+  /**
+   * Computes value fro `dropEffect` property of the `DragEvent`.
+   * @param {DragEvent} e
+   * @return {String} Either `copy` or `move`.
+   */
+  _computeDropEffect(e) {
+    let allowed = e.dataTransfer.effectAllowed;
+    if (!allowed) {
+      // this 2 operations are supported here
+      allowed = 'copyMove';
+    }
+    allowed = allowed.toLowerCase();
+    const isHistory = e.dataTransfer.types.indexOf('arc/history-request') !== -1;
+    if ((e.ctrlKey || e.metaKey) && !isHistory && allowed.indexOf('move') !== -1) {
+      return 'move';
+    } else {
+      return 'copy';
+    }
+  }
+  /**
+   * Handler for `dragleave` event on this element.
+   * @param {DragEvent} e
+   */
+  _dragleaveHandler(e) {
+    if (!this.draggableEnabled) {
+      return;
+    }
+    if (e.dataTransfer.types.indexOf('arc/request-object') === -1) {
+      return;
+    }
+    e.preventDefault();
+    this._removeDropPointer();
+    this.__dropPointerReference = undefined;
+  }
+  /**
+   * Handler for `drag` event on this element. If the dagged item is compatible
+   * it adds request to saved requests.
+   * @param {DragEvent} e
+   */
+  _dropHandler(e) {
+    if (!this.draggableEnabled) {
+      return;
+    }
+    if (e.dataTransfer.types.indexOf('arc/request-object') === -1) {
+      return;
+    }
+    e.preventDefault();
+    this._removeDropPointer();
+    const dropRef = this.__dropPointerReference;
+    this.__dropPointerReference = undefined;
+    const data = e.dataTransfer.getData('arc/request-object');
+    if (!data) {
+      return;
+    }
+    const request = JSON.parse(data);
+    if (!request.projects) {
+      request.projects = [];
+    }
+    let order;
+    if (dropRef) {
+      if (dropRef.nodeName === 'DOM-REPEAT') {
+        order = this.requests.length;
+      } else {
+        const model = this.$.list.modelForElement(dropRef);
+        order = model.get('index');
+      }
+    } else {
+      order = 0;
+    }
+    let forceRequestUpdate;
+    const effect = this._computeDropEffect(e);
+    if (effect === 'move') {
+      forceRequestUpdate = this._handleMoveDrop(e, request);
+    }
+    this._insertRequestAt(order, request, forceRequestUpdate);
+  }
+  /**
+   * Handles logic when drop event is `move` in effect.
+   * Removes reference to old project (if exists). It uses `arc-source/project-detail`
+   * data from event which should hold project ID.
+   * @param {DragEvent} e
+   * @param {Object} request Request object
+   * @return {Boolean} True if the request object changed.
+   */
+  _handleMoveDrop(e, request) {
+    let projectId;
+    if (e.dataTransfer.types.indexOf('arc-source/project-menu') !== -1) {
+      projectId = e.dataTransfer.getData('arc-source/project-menu');
+    } else if (e.dataTransfer.types.indexOf('arc-source/project-detail') !== -1) {
+      projectId = e.dataTransfer.getData('arc-source/project-detail');
+    }
+    if (!projectId) {
+      return false;
+    }
+    const index = request.projects.indexOf(projectId);
+    if (index !== -1) {
+      request.projects.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+  /**
+   * Updates project and request objects and inserts the request at a position.
+   * @param {Number} index The position in requests order
+   * @param {Object} request Request to update
+   * @param {Boolean} forceRequestUpdate Forces update on request object even
+   * when position hasn't change.
+   * @return {Promise}
+   */
+  _insertRequestAt(index, request, forceRequestUpdate) {
+    if (request.type === 'history') {
+      delete request._rev;
+      const gen = document.createElement('uuid-generator');
+      request._id = gen.generate();
+    }
+    if (!request.name) {
+      request.name = 'Unnamed';
+    }
+    const project = this.project;
+    const id = request._id;
+    if (!project.requests) {
+      project.requests = [id];
+    } else {
+      const currentIndex = project.requests.indexOf(id);
+      if (currentIndex !== -1) {
+        project.requests.splice(currentIndex, 1);
+      }
+      project.requests.splice(index, 0, id);
+    }
+    if (!request.projects) {
+      request.projects = [];
+    }
+    let requestChanged = false;
+    if (request.projects.indexOf(project._id) === -1) {
+      request.projects.push(project._id);
+      requestChanged = true;
+    }
+    const e = this._dispatchProjectChanged(project);
+    return e.detail.result
+    .then(() => {
+      if (requestChanged || forceRequestUpdate) {
+        const e = this._dispatch('save-request', {
+          request
+        });
+        return e.detail.result;
+      }
+    })
+    .catch((cause) => {
+      console.warn(cause);
+    });
+  }
+
+  _dispatchProjectChanged(project) {
+    return this._dispatch('project-object-changed', {
+      project
+    });
+  }
+  /**
+   * Handler for the `dragstart` event added to the list item when `draggableEnabled`
+   * is set to true.
+   * This function sets request data on the `dataTransfer` object with `arc/request-object`
+   * mime type. The request data is a serialized JSON with request model.
+   * @param {Event} e
+   */
+  _dragStart(e) {
+    if (!this.draggableEnabled) {
+      return;
+    }
+    e.stopPropagation();
+    const request = e.model.get('item');
+    const data = JSON.stringify(request);
+    e.dataTransfer.setData('arc/request-object', data);
+    e.dataTransfer.setData('arc/saved-request', request._id);
+    e.dataTransfer.setData('arc-source/project-detail', this.projectId);
+    e.dataTransfer.effectAllowed = 'copyMove';
+  }
+  /**
+   * Computes value for the `draggable` property of the list item.
+   * When `draggableEnabled` is set it returns true which is one of the
+   * conditions to enable drag and drop on an element.
+   * @param {Boolean} draggableEnabled Current value of `draggableEnabled`
+   * @return {String} `true` or `false` (as string) depending on the argument.
+   */
+  _computeDraggableValue(draggableEnabled) {
+    return draggableEnabled ? 'true' : 'false';
+  }
+  /**
+   * Updates icon size CSS variable and notifies resize on the list when
+   * list type changes.
+   * @param {?String} type
+   */
+  _updateListStyles(type) {
+    let size;
+    switch (type) {
+      case 'comfortable': size = 40; break;
+      case 'compact': size = 36; break;
+      default: size = 56; break;
+    }
+    this._applyListStyles(size);
+  }
+  /**
+   * Fired when the user clicked on a delete button on an item.
+   * This event does not bubbles.
+   *
+   * @event list-items-delete
+   * @param {Array} items A list of items to delete.
+   */
+  /**
+   * Fired when the user clicked on an open button on an item.
+   * This event does not bubbles.
+   *
+   * @event list-item-open
+   * @param {Object} item An object associated with this item.
+   */
+  /**
+   * Dispatched when the user requested to export selected items.
+   * This event does not bubbles.
+   *
+   * @event list-items-export
+   * @param {Array} items List of request objects requested to be exported.
+   */
+  /**
+   * Fired when the "request details" has been requested via this UI.
+   * @event list-item-details
+   * @param {Object} item An object associated with this item.
+   */
+}
+window.customElements.define('project-requests-list', RequestEditor);
